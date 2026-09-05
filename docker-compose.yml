@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------------
+  # 1. Spring Boot Backend REST API (Java 21)
+  # -------------------------------------------------------------------
+  promptxub-backend:
+    container_name: promptxub-backend
+    build:
+      context: ./promptxub-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=${DATABASE_URL:-jdbc:postgresql://ep-example.eu-central-1.aws.neon.tech/promptxub_db?sslmode=require}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-promptxub_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-promptxub_password}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-demo_cloud}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-demo_api_key}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-demo_api_secret}
+      - JWT_SECRET=${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      - JWT_EXPIRATION_MS=86400000
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,https://promptxub.com,https://admin.promptxub.com
+    restart: unless-stopped
+    networks:
+      - promptxub-network
+
+  # -------------------------------------------------------------------
+  # 2. Main Public Showcase Website (Next.js 14 Standalone)
+  # -------------------------------------------------------------------
+  promptxub-showcase:
+    container_name: promptxub-showcase
+    build:
+      context: ./promptxub-showcase
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      - promptxub-backend
+    restart: unless-stopped
+    networks:
+      - promptxub-network
+
+  # -------------------------------------------------------------------
+  # 3. Dedicated Admin Web Panel (Next.js 14 Standalone)
+  # -------------------------------------------------------------------
+  promptxub-admin:
+    container_name: promptxub-admin
+    build:
+      context: ./promptxub-admin
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    depends_on:
+      - promptxub-backend
+    restart: unless-stopped
+    networks:
+      - promptxub-network
+
+networks:
+  promptxub-network:
+    name: promptxub-network
+    driver: bridge

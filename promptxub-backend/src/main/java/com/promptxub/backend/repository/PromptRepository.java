@@ -1,0 +1,58 @@
+package com.promptxub.backend.repository;
+
+import com.promptxub.backend.entity.ContentType;
+import com.promptxub.backend.entity.Prompt;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PromptRepository extends JpaRepository<Prompt, Long>, JpaSpecificationExecutor<Prompt> {
+
+    Page<Prompt> findByIsActiveTrue(Pageable pageable);
+
+    Page<Prompt> findByContentTypeAndIsActiveTrue(ContentType contentType, Pageable pageable);
+
+    Page<Prompt> findByCategorySlugAndIsActiveTrue(String slug, Pageable pageable);
+
+    Page<Prompt> findByAiModelIgnoreCaseAndIsActiveTrue(String aiModel, Pageable pageable);
+
+    Page<Prompt> findByIsFeaturedTrueAndIsActiveTrue(Pageable pageable);
+
+    @Query("SELECT p FROM Prompt p WHERE p.isActive = true AND " +
+            "(LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            " LOWER(p.promptText) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            " LOWER(p.aiModel) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<Prompt> searchPrompts(@Param("query") String query, Pageable pageable);
+
+    @Query("SELECT p FROM Prompt p WHERE p.isActive = true AND p.contentType = :contentType AND " +
+            "(LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            " LOWER(p.promptText) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            " LOWER(p.aiModel) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<Prompt> searchPromptsByContentType(@Param("query") String query,
+                                            @Param("contentType") ContentType contentType,
+                                            Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Prompt p SET p.copyCount = p.copyCount + 1 WHERE p.id = :id")
+    int incrementCopyCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Prompt p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
+    int incrementViewCount(@Param("id") Long id);
+
+    List<Prompt> findTop10ByIsActiveTrueOrderByCopyCountDesc();
+
+    @Query("SELECT COALESCE(SUM(p.copyCount), 0) FROM Prompt p")
+    Long getTotalCopyCount();
+
+    @Query("SELECT COUNT(p) FROM Prompt p WHERE p.contentType = :contentType")
+    Long countByContentType(@Param("contentType") ContentType contentType);
+}
