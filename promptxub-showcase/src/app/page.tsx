@@ -140,7 +140,7 @@ export default function ShowcasePage() {
             <span className="font-bold text-slate-200">PromptXub</span>
             <span>— The Generative AI Prompt Showcase & Discovery Platform</span>
           </div>
-          <p className="text-slate-400">Built for $0 infrastructure budget with Next.js 14, Neon & Cloudinary.</p>
+          <p className="text-slate-400">Built for $0 infrastructure budget with Next.js 14, Neon & ImageKit.</p>
         </div>
       </footer>
     </main>

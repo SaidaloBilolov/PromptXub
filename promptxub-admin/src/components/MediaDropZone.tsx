@@ -161,7 +161,7 @@ export const MediaDropZone: React.FC<MediaDropZoneProps> = ({ onFileSelected }) 
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <Video className="w-3.5 h-3.5 text-cyan-400" /> Stream Direct to Cloudinary
+              <Video className="w-3.5 h-3.5 text-cyan-400" /> Stream Direct to ImageKit CDN
             </span>
           </div>
         </div>

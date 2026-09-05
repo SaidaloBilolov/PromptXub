@@ -7,8 +7,8 @@ import com.promptxub.backend.entity.User;
 import com.promptxub.backend.repository.CategoryRepository;
 import com.promptxub.backend.repository.RoleRepository;
 import com.promptxub.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,15 +17,25 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Set;
 
-@Slf4j
 @Component
-@RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public DataInitializer(RoleRepository roleRepository,
+                           UserRepository userRepository,
+                           CategoryRepository categoryRepository,
+                           PasswordEncoder passwordEncoder) {
+        this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Value("${promptxub.default-admin.password:Admin@PromptXub2025!}")
     private String defaultAdminPassword;

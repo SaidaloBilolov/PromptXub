@@ -141,7 +141,7 @@ export default function NewPromptPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <AdminNavbar
           title="Upload & Publish New AI Prompt"
-          subtitle="Add high-quality prompts with Cloudinary auto-optimization and tagging"
+          subtitle="Add high-quality prompts with ImageKit.io auto-optimization and tagging"
         />
 
         <main className="p-8 max-w-4xl mx-auto w-full space-y-6">
@@ -339,7 +339,7 @@ export default function NewPromptPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Streaming to Cloudinary & Saving Prompt...</span>
+                    <span>Uploading to ImageKit.io & Saving Prompt...</span>
                   </>
                 ) : (
                   <>

@@ -1,6 +1,6 @@
 # PromptXub — Enterprise AI Prompt & Media Showcase Platform
 
-> **PromptXub** (promptxub.com) is an enterprise-grade AI Prompt & Media Showcase platform engineered with **Java 21 (Spring Boot 3)**, **PostgreSQL (Neon Serverless)**, **Cloudinary CDN**, and **Next.js 14 App Router** frontends — architected for **$0 total infrastructure cost**.
+> **PromptXub** (promptxub.com) is an enterprise-grade AI Prompt & Media Showcase platform engineered with **Java 21 (Spring Boot 3)**, **PostgreSQL (Neon Serverless)**, **ImageKit.io CDN**, and **Next.js 14 App Router** frontends — architected for **$0 total infrastructure cost**.
 
 ---
 
@@ -15,7 +15,7 @@
                                            │ HikariCP SSL
                                            │
 ┌──────────────────────────┐   HTTP/JSON   │  REST API (Port 8080)   ┌────────────────────────┐
-│  Next.js 14 Showcase     ├───────────────┼─────────────────────────┤  Cloudinary Media CDN  │
+│  Next.js 14 Showcase     ├───────────────┼─────────────────────────┤  ImageKit.io Media CDN │
 │  (Port 3000 - Users)     │               │                         │  (Auto-Format WebP/MP4)│
 └──────────────────────────┘               ▼                         └───────────▲────────────┘
                                ┌────────────────────────┐                        │
@@ -41,7 +41,7 @@ cp .env.example .env
 ```
 Fill in your credentials:
 - **Neon.tech Database**: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`
-- **Cloudinary CDN**: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- **ImageKit.io CDN**: `IMAGEKIT_URL_ENDPOINT`, `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`
 - **JWT Secret**: Any 256-bit string or generate a key.
 
 ### 2. Build & Launch Containers
@@ -90,9 +90,9 @@ docker compose down
 2. Create a database named `promptxub_db`.
 3. Copy your pooled connection string (with `?sslmode=require`).
 
-### Step B: Media CDN (Cloudinary)
-1. Sign up at [cloudinary.com](https://cloudinary.com) (Free Tier provides 25 monthly credits).
-2. Copy `Cloud Name`, `API Key`, and `API Secret` from your dashboard.
+### Step B: Media CDN (ImageKit.io)
+1. Sign up at [imagekit.io](https://imagekit.io) (Free Tier provides 20GB bandwidth & media storage).
+2. Copy `URL-endpoint`, `Public Key`, and `Private Key` from your developer options dashboard.
 
 ### Step C: Backend Deployment (Render.com)
 1. Create a **New Web Service** from your GitHub repo.
@@ -102,9 +102,9 @@ docker compose down
    - `DATABASE_URL`: `jdbc:postgresql://<neon-endpoint>.neon.tech/promptxub_db?sslmode=require`
    - `DATABASE_USERNAME`: `<neon-user>`
    - `DATABASE_PASSWORD`: `<neon-password>`
-   - `CLOUDINARY_CLOUD_NAME`: `<your_cloud_name>`
-   - `CLOUDINARY_API_KEY`: `<your_api_key>`
-   - `CLOUDINARY_API_SECRET`: `<your_api_secret>`
+   - `IMAGEKIT_URL_ENDPOINT`: `https://ik.imagekit.io/promptxub`
+   - `IMAGEKIT_PUBLIC_KEY`: `public_PHUOaLGx8fOZbLtSqKWIERbPPS0=`
+   - `IMAGEKIT_PRIVATE_KEY`: `private_KofG/lsYCUr2lqKebYGhGBqxpZo=`
    - `JWT_SECRET`: `<your_jwt_secret>`
    - `CORS_ALLOWED_ORIGINS`: `https://promptxub.com,https://admin.promptxub.com`
 5. Copy your **Deploy Hook URL** from the Render settings.

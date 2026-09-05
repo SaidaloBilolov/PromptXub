@@ -20,7 +20,7 @@
     <properties>
         <java.version>21</java.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <cloudinary.version>1.38.0</cloudinary.version>
+        <imagekit.version>3.5.0</imagekit.version>
         <bucket4j.version>8.10.1</bucket4j.version>
     </properties>
 
@@ -50,11 +50,11 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Cloudinary SDK for Image and Video management -->
+        <!-- ImageKit Java SDK for Image and Video management -->
         <dependency>
-            <groupId>com.cloudinary</groupId>
-            <artifactId>cloudinary-http44</artifactId>
-            <version>${cloudinary.version}</version>
+            <groupId>io.imagekit</groupId>
+            <artifactId>image-kit-java</artifactId>
+            <version>${imagekit.version}</version>
         </dependency>
 
         <!-- Modern JWT (jjwt 0.12.x) -->
@@ -83,13 +83,6 @@
             <version>${bucket4j.version}</version>
         </dependency>
 
-        <!-- Lombok Developer Productivity -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -108,14 +101,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
     </build>
