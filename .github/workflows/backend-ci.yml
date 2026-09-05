@@ -1,0 +1,64 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'promptxub-backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'promptxub-backend/**'
+  workflow_dispatch:
+
+jobs:
+  backend-build-and-test:
+    name: Java 21 & Maven Build, Test & Docker Verification
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./promptxub-backend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache Maven Local Repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('promptxub-backend/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Compile and Package JAR
+        run: mvn -B clean package -DskipTests
+
+      - name: Verify Multi-Stage Docker Image Build
+        run: |
+          docker build \
+            --tag promptxub-backend:latest \
+            --tag promptxub-backend:${{ github.sha }} \
+            .
+
+      - name: Trigger Render.com Zero-Downtime Deployment Hook
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$RENDER_HOOK" ]; then
+            echo "Triggering Render.com automatic redeployment..."
+            curl -fsSL -X POST "$RENDER_HOOK"
+            echo "Render deploy hook successfully triggered!"
+          else
+            echo "RENDER_BACKEND_DEPLOY_HOOK_URL secret not configured. Skipping deploy trigger."
+          fi

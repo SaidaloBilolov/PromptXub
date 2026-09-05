@@ -1,0 +1,118 @@
+name: Frontends CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'promptxub-showcase/**'
+      - 'promptxub-admin/**'
+      - '.github/workflows/frontends-ci.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'promptxub-showcase/**'
+      - 'promptxub-admin/**'
+  workflow_dispatch:
+
+jobs:
+  # -------------------------------------------------------------------
+  # 1. Main Public Showcase CI/CD
+  # -------------------------------------------------------------------
+  showcase-build-and-verify:
+    name: Showcase (Next.js 14) Build & Standalone Docker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./promptxub-showcase
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: promptxub-showcase/package.json
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Typecheck and Standalone Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.promptxub.com/api/v1
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Verify Showcase Docker Standalone Image Build
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=https://api.promptxub.com/api/v1 \
+            --tag promptxub-showcase:latest \
+            --tag promptxub-showcase:${{ github.sha }} \
+            .
+
+      - name: Trigger Showcase Deployment Webhook (Vercel / Cloudflare)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          SHOWCASE_HOOK: ${{ secrets.VERCEL_SHOWCASE_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$SHOWCASE_HOOK" ]; then
+            echo "Triggering frontend deployment..."
+            curl -fsSL -X POST "$SHOWCASE_HOOK"
+            echo "Showcase deploy hook triggered successfully!"
+          else
+            echo "VERCEL_SHOWCASE_DEPLOY_HOOK secret not configured. Skipping deploy trigger."
+          fi
+
+  # -------------------------------------------------------------------
+  # 2. Dedicated Admin Panel CI/CD
+  # -------------------------------------------------------------------
+  admin-build-and-verify:
+    name: Admin Panel (Next.js 14) Build & Standalone Docker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./promptxub-admin
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: promptxub-admin/package.json
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Typecheck and Standalone Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.promptxub.com/api/v1
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Verify Admin Docker Standalone Image Build
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=https://api.promptxub.com/api/v1 \
+            --tag promptxub-admin:latest \
+            --tag promptxub-admin:${{ github.sha }} \
+            .
+
+      - name: Trigger Admin Panel Deployment Webhook
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          ADMIN_HOOK: ${{ secrets.VERCEL_ADMIN_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$ADMIN_HOOK" ]; then
+            echo "Triggering admin deployment..."
+            curl -fsSL -X POST "$ADMIN_HOOK"
+            echo "Admin deploy hook triggered successfully!"
+          else
+            echo "VERCEL_ADMIN_DEPLOY_HOOK secret not configured. Skipping deploy trigger."
+          fi
