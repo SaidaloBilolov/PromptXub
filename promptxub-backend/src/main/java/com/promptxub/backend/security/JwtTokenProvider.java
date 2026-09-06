@@ -30,10 +30,8 @@ public class JwtTokenProvider {
     private SecretKey getSigningKey() {
         byte[] keyBytes;
         try {
-            // Try base64 decode if formatted as base64
             keyBytes = Decoders.BASE64.decode(jwtSecret);
         } catch (IllegalArgumentException e) {
-            // Fallback to UTF-8 bytes if raw string
             keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         }
         return Keys.hmacShaKeyFor(keyBytes);
@@ -90,9 +88,6 @@ public class JwtTokenProvider {
 
     public String getUsernameFromJWT(String token) {
         String cleanToken = sanitizeToken(token);
-        if (cleanToken != null && cleanToken.startsWith("mock-jwt-token")) {
-            return "admin";
-        }
         Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
@@ -106,10 +101,6 @@ public class JwtTokenProvider {
         String cleanToken = sanitizeToken(authToken);
         if (cleanToken == null) {
             return false;
-        }
-        if (cleanToken.startsWith("mock-jwt-token")) {
-            log.info("Mock JWT token validated successfully for admin fallback.");
-            return true;
         }
         try {
             Jwts.parser()

@@ -54,6 +54,7 @@ public class AuthController {
             String username = loginRequest.getUsername();
             String password = loginRequest.getPassword();
 
+            // Default Admin fallback issuing a REAL signed 3-part JWT token
             if ("admin".equalsIgnoreCase(username) && ("admin".equalsIgnoreCase(password) || "Admin@PromptXub2025!".equals(password))) {
                 String jwt = tokenProvider.generateTokenForUsername("admin", "admin@promptxub.com", 1L, "ROLE_ADMIN,ROLE_USER");
                 return ResponseEntity.ok(new JwtAuthResponse(jwt, "Bearer", "admin", "admin@promptxub.com", List.of("ROLE_ADMIN", "ROLE_USER")));

@@ -2,24 +2,10 @@ import { AdminStats, UserStats } from '@/types';
 import { apiClient, API_BASE_URL } from './apiClient';
 
 export async function loginAdmin(username: string, password: string) {
-  try {
-    return await apiClient('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
-  } catch (error) {
-    // If backend isn't up during local UI development, support default admin credentials for preview
-    if (username === 'admin' && (password === 'admin' || password === 'Admin@PromptXub2025!')) {
-      return {
-        accessToken: 'mock-jwt-token-promptxub-admin',
-        tokenType: 'Bearer',
-        username: 'admin',
-        email: 'admin@promptxub.com',
-        roles: ['ROLE_ADMIN'],
-      };
-    }
-    throw error;
-  }
+  return await apiClient('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {
