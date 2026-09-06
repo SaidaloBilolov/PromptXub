@@ -174,7 +174,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           {prompt.contentType === 'VIDEO' ? (
             <video
               src={prompt.mediaUrl}
-              poster={getImageKitWatermarkUrl(prompt.thumbnailUrl || prompt.mediaUrl)}
+              poster={getOptimizedMediaUrl(prompt.thumbnailUrl || prompt.mediaUrl, { width: 1200 })}
               controls
               autoPlay
               muted
@@ -185,7 +185,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             />
           ) : (
             <img
-              src={getImageKitWatermarkUrl(prompt.mediaUrl)}
+              src={getOptimizedMediaUrl(prompt.mediaUrl, { width: 1200 })}
               alt={prompt.title}
               className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
             />

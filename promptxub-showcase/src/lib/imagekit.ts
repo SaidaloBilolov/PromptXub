@@ -1,15 +1,29 @@
-/**
- * Helper utility to build watermarked URLs for images/videos hosted on ImageKit.
- * Appends transformation parameters to render 'PromptXub.uz' in the bottom right corner.
- */
+export interface ImageKitOptions {
+  width?: number;
+  quality?: string | number;
+  format?: string;
+  watermark?: boolean;
+  watermarkText?: string;
+}
 
-export const getImageKitWatermarkUrl = (
+/**
+ * Helper utility to build optimized & watermarked URLs for images/videos hosted on ImageKit.
+ * Appends transformation parameters like `tr=f-auto,q-auto,w-800` alongside watermark text overlay.
+ */
+export const getOptimizedMediaUrl = (
   url?: string,
-  watermarkText: string = 'PromptXub.uz'
+  options: ImageKitOptions = {}
 ): string => {
   if (!url) return '';
 
-  // Only apply ImageKit transformations if the URL is hosted on ImageKit or contains ik.imagekit.io
+  const {
+    width = 800,
+    quality = 'auto',
+    format = 'auto',
+    watermark = true,
+    watermarkText = 'PromptXub.uz',
+  } = options;
+
   const isImageKit = url.includes('ik.imagekit.io') || url.includes('imagekit');
 
   if (!isImageKit) {
@@ -17,20 +31,25 @@ export const getImageKitWatermarkUrl = (
   }
 
   try {
-    // Base64 encode the watermark text for ImageKit text overlay (ie- parameter)
-    // "PromptXub.uz" -> "UHJvbXB0WHViLnV6"
-    const encodedText = typeof btoa !== 'undefined' ? btoa(watermarkText) : Buffer.from(watermarkText).toString('base64');
+    const transforms: string[] = [];
 
-    // ImageKit text overlay transformation string:
-    // l-text: start text overlay layer
-    // ie-: base64 encoded text string
-    // co-: text color (white)
-    // fs-: font size (18px)
-    // bg-: background color with transparency (black 60% opacity -> 00000099)
-    // pa-: padding (6px)
-    // lfo-: overlay position (bottom_right)
-    // l-end: end overlay layer
-    const transformParam = `tr=l-text,ie-${encodedText},co-FFFFFF,fs-18,bg-00000099,pa-6,lfo-bottom_right,l-end`;
+    if (format) transforms.push(`f-${format}`);
+    if (quality) transforms.push(`q-${quality}`);
+    if (width) transforms.push(`w-${width}`);
+
+    let watermarkParam = '';
+    if (watermark && watermarkText) {
+      const encodedText =
+        typeof btoa !== 'undefined'
+          ? btoa(watermarkText)
+          : Buffer.from(watermarkText).toString('base64');
+      watermarkParam = `l-text,ie-${encodedText},co-FFFFFF,fs-18,bg-00000099,pa-6,lfo-bottom_right,l-end`;
+    }
+
+    let transformParam = `tr=${transforms.join(',')}`;
+    if (watermarkParam) {
+      transformParam += `:${watermarkParam}`;
+    }
 
     if (url.includes('?')) {
       if (url.includes('tr=')) {
@@ -41,7 +60,14 @@ export const getImageKitWatermarkUrl = (
       return `${url}?${transformParam}`;
     }
   } catch (e) {
-    console.error('Error generating ImageKit watermark URL:', e);
+    console.error('Error generating ImageKit optimized URL:', e);
     return url;
   }
+};
+
+export const getImageKitWatermarkUrl = (
+  url?: string,
+  watermarkText: string = 'PromptXub.uz'
+): string => {
+  return getOptimizedMediaUrl(url, { width: 800, watermarkText });
 };

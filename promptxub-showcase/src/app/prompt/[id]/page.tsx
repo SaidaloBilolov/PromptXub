@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchPromptById } from '@/lib/api';
 import { ShareButton } from '@/components/ShareButton';
-import { getImageKitWatermarkUrl } from '@/lib/imagekit';
+import { getOptimizedMediaUrl } from '@/lib/imagekit';
 import { ArrowLeft, Sparkles, Sliders, Flame, Eye, Copy, Download, Layers, Film, Camera } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: prompt.contentType === 'VIDEO' ? 'video.other' : 'website',
       images: [
         {
-          url: prompt.mediaUrl,
+          url: getOptimizedMediaUrl(prompt.mediaUrl, { width: 1200 }),
           width: 1200,
           height: 630,
           alt: prompt.title,
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title,
       description,
-      images: [prompt.mediaUrl],
+      images: [getOptimizedMediaUrl(prompt.mediaUrl, { width: 1200 })],
     },
   };
 }
@@ -90,8 +90,47 @@ export default async function PromptDetailPage({ params }: PageProps) {
     );
   }
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://promptxub.uz').replace(/\/+$/, '');
+  const promptUrl = `${siteUrl}/prompt/${prompt.id}`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': ['CreativeWork', prompt.contentType === 'VIDEO' ? 'VideoObject' : 'ImageObject'],
+    name: prompt.title,
+    description: prompt.promptText,
+    url: promptUrl,
+    contentUrl: prompt.mediaUrl,
+    thumbnailUrl: getOptimizedMediaUrl(prompt.thumbnailUrl || prompt.mediaUrl, { width: 800 }),
+    dateCreated: prompt.createdAt,
+    creator: {
+      '@type': 'Organization',
+      name: 'PromptXub AI Platform',
+      url: siteUrl,
+    },
+    genre: prompt.category?.name || 'AI Art & Prompts',
+    keywords: [prompt.aiModel, ...(prompt.tags?.map((t) => t.name) || [])].join(', '),
+    interactionStatistic: [
+      {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/WatchAction',
+        userInteractionCount: prompt.viewCount,
+      },
+      {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/ShareAction',
+        userInteractionCount: prompt.copyCount,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#0F172A] text-slate-100 selection:bg-purple-500 selection:text-white flex flex-col">
+      {/* Schema.org JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Header Bar */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0F172A]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -125,7 +164,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
             {prompt.contentType === 'VIDEO' ? (
               <video
                 src={prompt.mediaUrl}
-                poster={getImageKitWatermarkUrl(prompt.thumbnailUrl || prompt.mediaUrl)}
+                poster={getOptimizedMediaUrl(prompt.thumbnailUrl || prompt.mediaUrl, { width: 1200 })}
                 controls
                 autoPlay
                 muted
@@ -136,7 +175,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
               />
             ) : (
               <img
-                src={getImageKitWatermarkUrl(prompt.mediaUrl)}
+                src={getOptimizedMediaUrl(prompt.mediaUrl, { width: 1200 })}
                 alt={prompt.title}
                 className="w-full h-full max-h-[75vh] object-contain"
               />

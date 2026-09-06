@@ -164,17 +164,41 @@ export async function fetchPrompts(params: {
   }
 }
 
-export async function incrementCopyCount(promptId: number): Promise<boolean> {
+export function trackAnalyticsEvent(promptId: number, type: 'view' | 'copy'): void {
+  const url = `${API_BASE_URL}/prompts/track`;
+  const payload = JSON.stringify({ promptId, type, timestamp: Date.now() });
+
   try {
-    const res = await fetch(`${API_BASE_URL}/public/prompts/${promptId}/copy`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return res.ok;
-  } catch (err) {
-    console.warn('Failed to notify backend about copy event', err);
-    return false;
+    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      const sent = navigator.sendBeacon(url, blob);
+      if (sent) return;
+    }
+  } catch (e) {
+    // ignore beacon serialization errors
   }
+
+  // Non-blocking background fetch with keepalive
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {
+    // Legacy endpoint fallback
+    fetch(`${API_BASE_URL}/public/prompts/${promptId}/${type}`, {
+      method: 'POST',
+      keepalive: true,
+    }).catch(() => {});
+  });
+}
+
+export function incrementCopyCount(promptId: number): void {
+  trackAnalyticsEvent(promptId, 'copy');
+}
+
+export function incrementViewCount(promptId: number): void {
+  trackAnalyticsEvent(promptId, 'view');
 }
 
 export async function fetchPromptById(id: number | string): Promise<Prompt | null> {

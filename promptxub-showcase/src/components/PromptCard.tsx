@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Copy, Check, Video, Eye, Sparkles, Flame } from 'lucide-react';
 import { Prompt } from '@/types';
 import { formatCompactNumber } from '@/lib/utils';
 import { incrementCopyCount } from '@/lib/api';
 import { ShareButton } from './ShareButton';
-import { getImageKitWatermarkUrl } from '@/lib/imagekit';
+import { getOptimizedMediaUrl } from '@/lib/imagekit';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -21,6 +21,31 @@ export const PromptCard: React.FC<PromptCardProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [localCopies, setLocalCopies] = useState(prompt.copyCount);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // IntersectionObserver for smart lazy video playback
+  useEffect(() => {
+    if (prompt.contentType !== 'VIDEO' || !videoRef.current) return;
+
+    const videoEl = videoRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoEl.play().catch(() => {});
+          } else {
+            videoEl.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(videoEl);
+    return () => {
+      observer.disconnect();
+    };
+  }, [prompt.contentType]);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // prevent modal opening
@@ -31,7 +56,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
       setLocalCopies((prev) => prev + 1);
       onShowToast(`Copied prompt: "${prompt.title.substring(0, 24)}..."`);
 
-      // Increment counter in backend in real-time
+      // Non-blocking background analytics tracking
       incrementCopyCount(prompt.id);
 
       setTimeout(() => {
@@ -61,9 +86,9 @@ export const PromptCard: React.FC<PromptCardProps> = ({
         {prompt.contentType === 'VIDEO' ? (
           <div className="w-full h-full relative">
             <video
+              ref={videoRef}
               src={prompt.mediaUrl}
-              poster={getImageKitWatermarkUrl(prompt.thumbnailUrl || prompt.mediaUrl)}
-              autoPlay
+              poster={getOptimizedMediaUrl(prompt.thumbnailUrl || prompt.mediaUrl, { width: 800 })}
               muted
               loop
               playsInline
@@ -78,7 +103,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           </div>
         ) : (
           <img
-            src={getImageKitWatermarkUrl(prompt.mediaUrl)}
+            src={getOptimizedMediaUrl(prompt.mediaUrl, { width: 800 })}
             alt={prompt.title}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

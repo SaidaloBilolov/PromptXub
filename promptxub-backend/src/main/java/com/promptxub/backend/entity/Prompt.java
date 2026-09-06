@@ -16,7 +16,9 @@ import java.util.Set;
 @Table(name = "prompts", indexes = {
         @Index(name = "idx_prompts_content_type", columnList = "content_type"),
         @Index(name = "idx_prompts_ai_model", columnList = "ai_model"),
-        @Index(name = "idx_prompts_copy_count", columnList = "copy_count DESC"),
+        @Index(name = "idx_prompts_display_copy_count", columnList = "display_copy_count DESC"),
+        @Index(name = "idx_prompts_display_view_count", columnList = "display_view_count DESC"),
+        @Index(name = "idx_prompts_category_id", columnList = "category_id"),
         @Index(name = "idx_prompts_created_at", columnList = "created_at DESC"),
         @Index(name = "idx_prompts_is_featured", columnList = "is_featured"),
         @Index(name = "idx_prompts_is_active", columnList = "is_active")
