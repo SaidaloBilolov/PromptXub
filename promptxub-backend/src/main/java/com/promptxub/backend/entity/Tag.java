@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "tags", indexes = {
         @Index(name = "idx_tag_slug", columnList = "slug", unique = true)
 })
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Tag {
 
     @Id

@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "prompts", indexes = {
         @Index(name = "idx_prompts_content_type", columnList = "content_type"),
@@ -24,6 +26,7 @@ import java.util.Set;
         @Index(name = "idx_prompts_is_active", columnList = "is_active")
 })
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Prompt {
 
     @Id

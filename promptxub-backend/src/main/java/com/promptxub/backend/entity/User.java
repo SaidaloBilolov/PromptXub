@@ -12,12 +12,16 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "username"),
         @UniqueConstraint(columnNames = "email")
 })
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
     @Id
@@ -38,6 +42,7 @@ public class User {
     @NotBlank
     @Size(max = 120)
     @Column(nullable = false, length = 120)
+    @JsonIgnore
     private String password;
 
     @Column(length = 20)
