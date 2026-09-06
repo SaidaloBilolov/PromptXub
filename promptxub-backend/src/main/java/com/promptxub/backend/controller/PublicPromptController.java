@@ -68,10 +68,16 @@ public class PublicPromptController {
                 prompts = promptRepository.findByIsActiveTrue(pageable);
             }
 
+            prompts.getContent().forEach(p -> {
+                if (p.getCategory() != null) p.getCategory().getName();
+                if (p.getAuthor() != null) p.getAuthor().getUsername();
+                if (p.getTags() != null) p.getTags().size();
+            });
+
             return ResponseEntity.ok(prompts);
         } catch (Exception ex) {
             log.error("Error fetching public prompts: {}", ex.getMessage(), ex);
-            return ResponseEntity.ok(Page.empty());
+            return ResponseEntity.status(500).body(java.util.Map.of("error", ex.getClass().getName() + ": " + ex.getMessage()));
         }
     }
 
