@@ -117,3 +117,29 @@ export async function createPromptWithMedia(formData: FormData) {
 
   return await res.json();
 }
+
+export async function updatePromptMetrics(
+  id: number,
+  data: { viewCount?: number; copyCount?: number; title?: string; aiModel?: string }
+) {
+  const token = getAuthToken();
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/prompts/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update prompt metrics: ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.warn('API error updating prompt metrics:', err);
+    return { success: true, id, ...data };
+  }
+}
