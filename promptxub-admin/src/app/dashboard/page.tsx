@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { AdminNavbar } from '@/components/AdminNavbar';
 import { AnalyticsChart } from '@/components/AnalyticsChart';
-import { AdminStats } from '@/types';
-import { fetchAdminStats, updatePromptMetrics } from '@/lib/api';
+import { AdminStats, UserStats } from '@/types';
+import { fetchAdminStats, fetchUserStats, updatePromptMetrics } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import {
   Sparkles,
@@ -34,6 +34,7 @@ import { formatCompactNumber } from '@/lib/utils';
 export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -94,8 +95,12 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAdminStats();
+      const [data, uData] = await Promise.all([
+        fetchAdminStats(),
+        fetchUserStats().catch(() => null),
+      ]);
       setStats(data);
+      if (uData) setUserStats(uData);
       setError(null);
     } catch (err: any) {
       console.error('Failed to load stats', err);
@@ -266,7 +271,9 @@ export default function DashboardPage() {
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 block mb-1 font-medium">Google OAuth Users</span>
-                  <span className="text-xl font-bold text-cyan-400">719 accounts (58%)</span>
+                  <span className="text-xl font-bold text-cyan-400">
+                    {userStats?.googleUsersCount || 0} accounts ({userStats && userStats.totalUsers > 0 ? Math.round((userStats.googleUsersCount / userStats.totalUsers) * 100) : 0}%)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-cyan-950/80 text-cyan-400 border border-cyan-800">
                   <Check className="w-4 h-4" />
@@ -276,7 +283,9 @@ export default function DashboardPage() {
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 block mb-1 font-medium">Apple Sign-In Users</span>
-                  <span className="text-xl font-bold text-slate-100">335 accounts (27%)</span>
+                  <span className="text-xl font-bold text-slate-100">
+                    {userStats?.appleUsersCount || 0} accounts ({userStats && userStats.totalUsers > 0 ? Math.round((userStats.appleUsersCount / userStats.totalUsers) * 100) : 0}%)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700">
                   <Users className="w-4 h-4" />
@@ -286,7 +295,9 @@ export default function DashboardPage() {
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 block mb-1 font-medium">Email Magic Link</span>
-                  <span className="text-xl font-bold text-purple-400">186 accounts (15%)</span>
+                  <span className="text-xl font-bold text-purple-400">
+                    {userStats?.emailUsersCount || 0} accounts ({userStats && userStats.totalUsers > 0 ? Math.round((userStats.emailUsersCount / userStats.totalUsers) * 100) : 0}%)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-purple-950/80 text-purple-400 border border-purple-800">
                   <Sparkles className="w-4 h-4" />
@@ -305,22 +316,23 @@ export default function DashboardPage() {
                 <h2 className="text-base font-bold text-white">Top Converting AI Models</h2>
               </div>
               <div className="space-y-3">
-                {(stats.topConvertingModels || [
-                  { model: 'Midjourney v6', realCopies: 4850, realViews: 17080, conversionRate: 28.4 },
-                  { model: 'Runway Gen-3', realCopies: 3410, realViews: 14150, conversionRate: 24.1 },
-                  { model: 'Flux.1 Schnell', realCopies: 2890, realViews: 14590, conversionRate: 19.8 },
-                  { model: 'Luma Dream Machine', realCopies: 1300, realViews: 3980, conversionRate: 32.6 },
-                ]).map((m) => (
-                  <div key={m.model} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="font-bold text-slate-200">{m.model}</div>
-                      <div className="text-[11px] text-slate-400">{m.realCopies.toLocaleString()} copies / {m.realViews.toLocaleString()} views</div>
+                {stats.topConvertingModels && stats.topConvertingModels.length > 0 ? (
+                  stats.topConvertingModels.map((m) => (
+                    <div key={m.model} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="font-bold text-slate-200">{m.model}</div>
+                        <div className="text-[11px] text-slate-400">{m.realCopies.toLocaleString()} copies / {m.realViews.toLocaleString()} views</div>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
+                        {m.conversionRate}% conv.
+                      </span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
-                      {m.conversionRate}% conv.
-                    </span>
+                  ))
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800/60 text-center text-xs text-slate-500">
+                    No model performance data recorded yet.
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -331,25 +343,26 @@ export default function DashboardPage() {
                 <h2 className="text-base font-bold text-white">Peak Activity Times</h2>
               </div>
               <div className="space-y-3">
-                {(stats.peakActivityTimes || [
-                  { timeSlot: '20:00 - 23:00 (Peak)', activityPercentage: 88, copiesCount: 4120 },
-                  { timeSlot: '14:00 - 17:00 (Afternoon)', activityPercentage: 64, copiesCount: 2980 },
-                  { timeSlot: '10:00 - 13:00 (Morning)', activityPercentage: 52, copiesCount: 2410 },
-                  { timeSlot: '00:00 - 05:00 (Night)', activityPercentage: 24, copiesCount: 1120 },
-                ]).map((t) => (
-                  <div key={t.timeSlot} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-300">{t.timeSlot}</span>
-                      <span className="font-bold text-purple-400">{t.copiesCount} copies</span>
+                {stats.peakActivityTimes && stats.peakActivityTimes.length > 0 ? (
+                  stats.peakActivityTimes.map((t) => (
+                    <div key={t.timeSlot} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-300">{t.timeSlot}</span>
+                        <span className="font-bold text-purple-400">{t.copiesCount} copies</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-purple-500 to-cyan-400 h-full rounded-full"
+                          style={{ width: `${t.activityPercentage}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-cyan-400 h-full rounded-full"
-                        style={{ width: `${t.activityPercentage}%` }}
-                      />
-                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800/60 text-center text-xs text-slate-500">
+                    No hourly activity data recorded yet.
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -360,22 +373,23 @@ export default function DashboardPage() {
                 <h2 className="text-base font-bold text-white">Device & OS Distribution</h2>
               </div>
               <div className="space-y-3">
-                {(stats.deviceDistribution || [
-                  { device: 'Desktop', os: 'macOS / Chrome', percentage: 42, count: 5229 },
-                  { device: 'Mobile', os: 'iOS / Safari', percentage: 35, count: 4357 },
-                  { device: 'Desktop', os: 'Windows / Chrome', percentage: 18, count: 2241 },
-                  { device: 'Mobile', os: 'Android / Chrome', percentage: 5, count: 623 },
-                ]).map((d) => (
-                  <div key={d.os} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="font-bold text-slate-200">{d.os}</div>
-                      <div className="text-[11px] text-slate-400">{d.device} • {d.count.toLocaleString()} sessions</div>
+                {stats.deviceDistribution && stats.deviceDistribution.length > 0 ? (
+                  stats.deviceDistribution.map((d) => (
+                    <div key={d.os} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="font-bold text-slate-200">{d.os}</div>
+                        <div className="text-[11px] text-slate-400">{d.device} • {d.count.toLocaleString()} sessions</div>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-purple-950 text-purple-300 border border-purple-800/60">
+                        {d.percentage}%
+                      </span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-purple-950 text-purple-300 border border-purple-800/60">
-                      {d.percentage}%
-                    </span>
+                  ))
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800/60 text-center text-xs text-slate-500">
+                    No device analytics recorded yet.
                   </div>
-                ))}
+                )}
               </div>
             </div>
 

@@ -128,26 +128,7 @@ export async function fetchTimeSeriesAnalytics(startDate?: string, endDate?: str
   try {
     return await apiClient(`/admin/analytics/time-series?${query.toString()}`);
   } catch (err) {
-    console.warn('API error fetching time series, generating dev range data:', err);
-    const end = endDate ? new Date(endDate) : new Date();
-    const start = startDate ? new Date(startDate) : new Date(end.getTime() - 29 * 24 * 60 * 60 * 1000);
-    const points: import('@/types').DailyAnalyticsPoint[] = [];
-
-    const cur = new Date(start);
-    while (cur <= end) {
-      const dateStr = cur.toISOString().split('T')[0];
-      const dayNum = cur.getDate();
-      const viewsCount = Math.floor(400 + Math.sin(dayNum * 0.5) * 180 + (dayNum % 7) * 45);
-      const copiesCount = Math.floor(viewsCount * 0.26 + (dayNum % 3) * 12);
-      const visitorsCount = Math.floor(viewsCount * 0.65);
-      points.push({
-        date: dateStr,
-        viewsCount,
-        copiesCount,
-        visitorsCount,
-      });
-      cur.setDate(cur.getDate() + 1);
-    }
-    return points;
+    console.warn('API error fetching time series:', err);
+    return [];
   }
 }
