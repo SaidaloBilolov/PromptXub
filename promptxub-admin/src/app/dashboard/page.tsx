@@ -6,7 +6,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { AdminNavbar } from '@/components/AdminNavbar';
 import { AnalyticsChart } from '@/components/AnalyticsChart';
 import { AdminStats, UserStats } from '@/types';
-import { fetchAdminStats, fetchUserStats, updatePromptMetrics, deletePrompt } from '@/lib/api';
+import { fetchAdminStats, fetchUserStats, updatePromptMetrics, deletePrompt, fetchAdminPrompts } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import {
   Sparkles,
@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [promptsList, setPromptsList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -70,6 +71,7 @@ export default function DashboardPage() {
     setIsDeleting(true);
     try {
       await deletePrompt(id);
+      setPromptsList((prev) => prev.filter((p) => p.id !== id));
       if (stats) {
         setStats({
           ...stats,
@@ -93,6 +95,20 @@ export default function DashboardPage() {
         viewCount: Number(editingPrompt.viewCount),
         copyCount: Number(editingPrompt.copyCount),
       });
+
+      setPromptsList((prev) =>
+        prev.map((p) =>
+          p.id === editingPrompt.id
+            ? {
+                ...p,
+                displayViewCount: Number(editingPrompt.viewCount),
+                displayCopyCount: Number(editingPrompt.copyCount),
+                viewCount: Number(editingPrompt.viewCount),
+                copyCount: Number(editingPrompt.copyCount),
+              }
+            : p
+        )
+      );
 
       setStats({
         ...stats,
@@ -119,12 +135,18 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const [data, uData] = await Promise.all([
+      const [data, uData, pList] = await Promise.all([
         fetchAdminStats(),
         fetchUserStats().catch(() => null),
+        fetchAdminPrompts().catch(() => []),
       ]);
       setStats(data);
       if (uData) setUserStats(uData);
+      if (pList && Array.isArray(pList) && pList.length > 0) {
+        setPromptsList(pList);
+      } else if (data && data.topCopiedPrompts) {
+        setPromptsList(data.topCopiedPrompts);
+      }
       setError(null);
     } catch (err: any) {
       console.error('Failed to load stats', err);
@@ -445,11 +467,11 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {stats.topCopiedPrompts.map((item) => {
+                    {(promptsList.length > 0 ? promptsList : stats.topCopiedPrompts).map((item) => {
                       const realViews = item.realViewCount ?? 0;
                       const realCopies = item.realCopyCount ?? 0;
-                      const displayViews = item.viewCount ?? 0;
-                      const displayCopies = item.copyCount ?? 0;
+                      const displayViews = item.displayViewCount ?? item.viewCount ?? 0;
+                      const displayCopies = item.displayCopyCount ?? item.copyCount ?? 0;
                       const convRate = item.conversionRate !== undefined ? item.conversionRate : (realViews > 0 ? ((realCopies / realViews) * 100).toFixed(1) : '0.0');
 
                       return (

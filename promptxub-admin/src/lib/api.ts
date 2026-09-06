@@ -58,6 +58,15 @@ export async function createPromptWithMedia(formData: FormData) {
   });
 }
 
+export async function fetchAdminPrompts() {
+  try {
+    return await apiClient('/admin/prompts', { cache: 'no-store' });
+  } catch (err) {
+    console.warn('API error fetching admin prompts:', err);
+    return [];
+  }
+}
+
 export async function updatePromptMetrics(
   id: number,
   data: { viewCount?: number; copyCount?: number; displayViewCount?: number; displayCopyCount?: number; title?: string; aiModel?: string }
