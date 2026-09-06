@@ -53,9 +53,14 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initRoles() {
         for (ERole eRole : ERole.values()) {
-            if (roleRepository.findByName(eRole).isEmpty()) {
-                roleRepository.save(Role.builder().name(eRole).build());
-                log.info("Initialized role: {}", eRole);
+            try {
+                if (!roleRepository.existsByName(eRole)) {
+                    Role role = Role.builder().name(eRole).build();
+                    roleRepository.save(role);
+                    log.info("Initialized role: {}", eRole);
+                }
+            } catch (Exception ex) {
+                log.warn("Role {} initialization note: {}", eRole, ex.getMessage());
             }
         }
     }

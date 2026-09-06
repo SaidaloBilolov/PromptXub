@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Only enable standalone output mode for Docker builds; Vercel requires default deployment output
+  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' } : {}),
   reactStrictMode: true,
   images: {
     remotePatterns: [

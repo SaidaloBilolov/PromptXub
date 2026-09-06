@@ -1,7 +1,7 @@
 import { AdminStats } from '@/types';
 import { getAuthToken } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://promptxub.onrender.com/api/v1').replace(/\/+$/, '');
 
 export async function loginAdmin(username: string, password: string) {
   try {

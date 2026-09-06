@@ -16,12 +16,14 @@ export function setAuthSession(token: string, user: UserSession) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=86400; SameSite=Lax`;
 }
 
 export function clearAuthSession() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax`;
 }
 
 export function getCurrentUser(): UserSession | null {
