@@ -6,9 +6,11 @@ import { HeroSection } from '@/components/HeroSection';
 import { FilterBar } from '@/components/FilterBar';
 import { PromptCard } from '@/components/PromptCard';
 import { PromptDetailModal } from '@/components/PromptDetailModal';
+import { AuthModal } from '@/components/AuthModal';
 import { Toast } from '@/components/Toast';
 import { Prompt, ContentType } from '@/types';
 import { fetchPrompts } from '@/lib/api';
+import { useAuthTracker } from '@/hooks/useAuthTracker';
 import { Sparkles, Loader2, Frown } from 'lucide-react';
 
 export default function ShowcasePage() {
@@ -20,6 +22,13 @@ export default function ShowcasePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModalPrompt, setActiveModalPrompt] = useState<Prompt | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const {
+    showAuthModal,
+    triggerInteraction,
+    dismissAuthModal,
+    setAuthenticated,
+  } = useAuthTracker();
 
   useEffect(() => {
     let isCancelled = false;
@@ -54,9 +63,15 @@ export default function ShowcasePage() {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
+    triggerInteraction(true);
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
+  };
+
+  const handleOpenCardModal = (prompt: Prompt) => {
+    setActiveModalPrompt(prompt);
+    triggerInteraction(false);
   };
 
   return (
@@ -113,7 +128,7 @@ export default function ShowcasePage() {
               <PromptCard
                 key={prompt.id}
                 prompt={prompt}
-                onOpenModal={setActiveModalPrompt}
+                onOpenModal={handleOpenCardModal}
                 onShowToast={showToast}
               />
             ))}
@@ -126,6 +141,13 @@ export default function ShowcasePage() {
         prompt={activeModalPrompt}
         onClose={() => setActiveModalPrompt(null)}
         onShowToast={showToast}
+      />
+
+      {/* Progressive Engagement Soft-Gate Login Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={dismissAuthModal}
+        onSuccess={() => setAuthenticated(true)}
       />
 
       {/* Floating Toast Notification */}
