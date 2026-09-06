@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Outfit, JetBrains_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 const outfit = Outfit({
@@ -34,6 +35,7 @@ export default function RootLayout({
           <div className="fixed top-1/3 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
           {children}
         </div>
+        <Analytics />
       </body>
     </html>
   );
