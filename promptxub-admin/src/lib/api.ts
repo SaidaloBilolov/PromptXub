@@ -12,7 +12,7 @@ export async function fetchAdminStats(): Promise<AdminStats> {
   try {
     const data = await apiClient('/admin/analytics/real-summary', {
       cache: 'no-store',
-      timeoutMs: 8000,
+      timeoutMs: 30000,
     });
 
     return {

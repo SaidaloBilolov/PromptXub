@@ -32,7 +32,7 @@ export async function apiClient<T = any>(
   endpoint: string,
   options: ApiClientOptions = {}
 ): Promise<T> {
-  const { timeoutMs = 8000, headers: customHeaders, ...fetchOptions } = options;
+  const { timeoutMs = 30000, headers: customHeaders, ...fetchOptions } = options;
 
   // 1. REQUEST INTERCEPTOR: Build headers & attach Authorization token safely
   const headers = new Headers(customHeaders);
