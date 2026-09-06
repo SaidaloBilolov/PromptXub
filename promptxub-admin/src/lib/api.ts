@@ -1,38 +1,12 @@
 import { AdminStats, UserStats } from '@/types';
-import { getAuthToken } from './auth';
-
-function getApiBaseUrl(): string {
-  const rawUrl = (
-    process.env.NEXT_PUBLIC_API_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    'https://promptxub.onrender.com'
-  ).trim().replace(/\/+$/, '');
-
-  if (rawUrl.endsWith('/api/v1')) {
-    return rawUrl;
-  }
-  if (rawUrl.endsWith('/api')) {
-    return `${rawUrl}/v1`;
-  }
-  return `${rawUrl}/api/v1`;
-}
-
-const API_BASE_URL = getApiBaseUrl();
+import { apiClient, API_BASE_URL } from './apiClient';
 
 export async function loginAdmin(username: string, password: string) {
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    return await apiClient('/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: 'Invalid credentials' }));
-      throw new Error(err.message || 'Authentication failed');
-    }
-
-    return await res.json();
   } catch (error) {
     // If backend isn't up during local UI development, support default admin credentials for preview
     if (username === 'admin' && (password === 'admin' || password === 'Admin@PromptXub2025!')) {
@@ -49,28 +23,11 @@ export async function loginAdmin(username: string, password: string) {
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {
-  const token = getAuthToken();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-
   try {
-    const targetUrl = `${API_BASE_URL}/admin/analytics/real-summary`;
-    const res = await fetch(targetUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const data = await apiClient('/admin/analytics/real-summary', {
       cache: 'no-store',
-      signal: controller.signal,
+      timeoutMs: 8000,
     });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      const errorBody = await res.text().catch(() => '');
-      console.error(`[Admin Analytics API Error] GET ${targetUrl} failed with Status ${res.status} (${res.statusText}). Response Body:`, errorBody);
-      throw new Error(`Failed to fetch real database analytics (${res.status} ${res.statusText}): ${errorBody}`);
-    }
-
-    const data = await res.json();
 
     return {
       totalPrompts: data.totalPrompts || 0,
@@ -103,54 +60,27 @@ export async function fetchAdminStats(): Promise<AdminStats> {
       deviceDistribution: data.deviceDistribution || [],
     };
   } catch (err: any) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      console.error(`[Admin Analytics API Timeout] GET ${API_BASE_URL}/admin/analytics/real-summary timed out after 5000ms`);
-      throw new Error('Connection timed out after 5 seconds');
-    }
-    console.error(`[Admin Analytics Exception] GET ${API_BASE_URL}/admin/analytics/real-summary:`, err);
+    console.error(`[Admin Analytics Exception] GET /admin/analytics/real-summary:`, err);
     throw err;
   }
 }
 
 export async function createPromptWithMedia(formData: FormData) {
-  const token = getAuthToken();
-  const res = await fetch(`${API_BASE_URL}/admin/prompts`, {
+  return await apiClient('/admin/prompts', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: formData,
   });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ message: 'Failed to create prompt' }));
-    throw new Error(errorData.message || 'Failed to upload and save prompt');
-  }
-
-  return await res.json();
 }
 
 export async function updatePromptMetrics(
   id: number,
   data: { viewCount?: number; copyCount?: number; title?: string; aiModel?: string }
 ) {
-  const token = getAuthToken();
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/prompts/${id}`, {
+    return await apiClient(`/admin/prompts/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(data),
     });
-
-    if (!res.ok) {
-      throw new Error(`Failed to update prompt metrics: ${res.status}`);
-    }
-
-    return await res.json();
   } catch (err) {
     console.warn('API error updating prompt metrics:', err);
     return { success: true, id, ...data };
@@ -158,24 +88,11 @@ export async function updatePromptMetrics(
 }
 
 export async function fetchUserStats(): Promise<UserStats> {
-  const token = getAuthToken();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/users/stats`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
+    const data = await apiClient('/admin/users/stats', {
+      timeoutMs: 8000,
     });
-    clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch user stats: ${res.status}`);
-    }
-
-    const data = await res.json();
     return {
       totalUsers: data.totalUsers || 0,
       googleUsersCount: data.googleUsersCount || 0,
@@ -194,7 +111,6 @@ export async function fetchUserStats(): Promise<UserStats> {
       })),
     };
   } catch (err) {
-    clearTimeout(timeoutId);
     console.warn('API error fetching real user stats:', err);
     return {
       totalUsers: 0,
@@ -208,17 +124,10 @@ export async function fetchUserStats(): Promise<UserStats> {
 }
 
 export async function toggleUserStatus(id: number) {
-  const token = getAuthToken();
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/users/${id}/toggle-status`, {
+    return await apiClient(`/admin/users/${id}/toggle-status`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
-
-    if (!res.ok) throw new Error('Failed to toggle status');
-    return await res.json();
   } catch (err) {
     console.warn('Fallback status toggle:', err);
     return { success: true, id };
@@ -226,20 +135,12 @@ export async function toggleUserStatus(id: number) {
 }
 
 export async function fetchTimeSeriesAnalytics(startDate?: string, endDate?: string): Promise<import('@/types').DailyAnalyticsPoint[]> {
-  const token = getAuthToken();
   const query = new URLSearchParams();
   if (startDate) query.append('startDate', startDate);
   if (endDate) query.append('endDate', endDate);
 
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/analytics/time-series?${query.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-    return await res.json();
+    return await apiClient(`/admin/analytics/time-series?${query.toString()}`);
   } catch (err) {
     console.warn('API error fetching time series, generating dev range data:', err);
     const end = endDate ? new Date(endDate) : new Date();
