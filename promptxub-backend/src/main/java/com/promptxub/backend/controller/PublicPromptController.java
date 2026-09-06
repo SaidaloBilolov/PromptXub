@@ -122,29 +122,37 @@ public class PublicPromptController {
         map.put("createdAt", p.getCreatedAt());
         map.put("updatedAt", p.getUpdatedAt());
 
-        if (p.getCategory() != null) {
-            Map<String, Object> catMap = new LinkedHashMap<>();
-            catMap.put("id", p.getCategory().getId());
-            catMap.put("name", p.getCategory().getName());
-            catMap.put("slug", p.getCategory().getSlug());
-            catMap.put("description", p.getCategory().getDescription());
-            catMap.put("icon", p.getCategory().getIcon());
-            catMap.put("displayOrder", p.getCategory().getDisplayOrder());
-            map.put("category", catMap);
+        if (org.hibernate.Hibernate.isInitialized(p.getCategory()) && p.getCategory() != null) {
+            try {
+                Map<String, Object> catMap = new LinkedHashMap<>();
+                catMap.put("id", p.getCategory().getId());
+                catMap.put("name", p.getCategory().getName());
+                catMap.put("slug", p.getCategory().getSlug());
+                catMap.put("description", p.getCategory().getDescription());
+                catMap.put("icon", p.getCategory().getIcon());
+                catMap.put("displayOrder", p.getCategory().getDisplayOrder());
+                map.put("category", catMap);
+            } catch (Exception ex) {
+                map.put("category", null);
+            }
         } else {
             map.put("category", null);
         }
 
-        if (p.getTags() != null && !p.getTags().isEmpty()) {
-            List<Map<String, Object>> tagsList = p.getTags().stream().map(t -> {
-                Map<String, Object> tagMap = new LinkedHashMap<>();
-                tagMap.put("id", t.getId());
-                tagMap.put("name", t.getName());
-                tagMap.put("slug", t.getSlug());
-                return tagMap;
-            }).collect(Collectors.toList());
-            map.put("tags", tagsList);
-        } else {
+        try {
+            if (org.hibernate.Hibernate.isInitialized(p.getTags()) && p.getTags() != null && !p.getTags().isEmpty()) {
+                List<Map<String, Object>> tagsList = p.getTags().stream().map(t -> {
+                    Map<String, Object> tagMap = new LinkedHashMap<>();
+                    tagMap.put("id", t.getId());
+                    tagMap.put("name", t.getName());
+                    tagMap.put("slug", t.getSlug());
+                    return tagMap;
+                }).collect(Collectors.toList());
+                map.put("tags", tagsList);
+            } else {
+                map.put("tags", Collections.emptyList());
+            }
+        } catch (Exception ex) {
             map.put("tags", Collections.emptyList());
         }
 
