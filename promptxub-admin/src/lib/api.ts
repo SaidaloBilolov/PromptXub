@@ -1,7 +1,23 @@
 import { AdminStats, UserStats } from '@/types';
 import { getAuthToken } from './auth';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://promptxub.onrender.com/api/v1').replace(/\/+$/, '');
+function getApiBaseUrl(): string {
+  const rawUrl = (
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    'https://promptxub.onrender.com'
+  ).trim().replace(/\/+$/, '');
+
+  if (rawUrl.endsWith('/api/v1')) {
+    return rawUrl;
+  }
+  if (rawUrl.endsWith('/api')) {
+    return `${rawUrl}/v1`;
+  }
+  return `${rawUrl}/api/v1`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export async function loginAdmin(username: string, password: string) {
   try {

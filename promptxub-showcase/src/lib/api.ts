@@ -1,6 +1,22 @@
 import { Prompt, Category, PageResponse, ContentType } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+function getApiBaseUrl(): string {
+  const rawUrl = (
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    'https://promptxub.onrender.com'
+  ).trim().replace(/\/+$/, '');
+
+  if (rawUrl.endsWith('/api/v1')) {
+    return rawUrl;
+  }
+  if (rawUrl.endsWith('/api')) {
+    return `${rawUrl}/v1`;
+  }
+  return `${rawUrl}/api/v1`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Fallback high-quality curated AI media prompts to guarantee instant demo functionality
 export const MOCK_PROMPTS: Prompt[] = [
