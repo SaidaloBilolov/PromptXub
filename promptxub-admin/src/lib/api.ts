@@ -138,33 +138,50 @@ export async function updatePromptMetrics(
 
 export async function fetchUserStats(): Promise<UserStats> {
   const token = getAuthToken();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
   try {
     const res = await fetch(`${API_BASE_URL}/admin/users/stats`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch user stats: ${res.status}`);
     }
 
-    return await res.json();
-  } catch (err) {
-    console.warn('API error fetching user stats, utilizing fallback metrics:', err);
+    const data = await res.json();
     return {
-      totalUsers: 1240,
-      googleUsersCount: 719,
-      appleUsersCount: 335,
-      emailUsersCount: 186,
-      newUsersToday: 34,
-      usersList: [
-        { id: 1, name: "Alex Rivera", email: "alex.rivera@gmail.com", provider: "Google", avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", joinedDate: "2026-09-04T12:00:00Z", savedPromptsCount: 14, enabled: true },
-        { id: 2, name: "Sarah Chen", email: "sarah.chen@icloud.com", provider: "Apple", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", joinedDate: "2026-09-01T15:30:00Z", savedPromptsCount: 28, enabled: true },
-        { id: 3, name: "Dmitry Petrov", email: "dmitry.p@yandex.com", provider: "Email", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", joinedDate: "2026-08-25T09:20:00Z", savedPromptsCount: 8, enabled: true },
-        { id: 4, name: "Elena Rostova", email: "elena.r@gmail.com", provider: "Google", avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150", joinedDate: "2026-08-19T18:45:00Z", savedPromptsCount: 42, enabled: true },
-        { id: 5, name: "Marcus Vance", email: "marcus.vance@apple.com", provider: "Apple", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", joinedDate: "2026-08-07T11:10:00Z", savedPromptsCount: 19, enabled: false },
-      ],
+      totalUsers: data.totalUsers || 0,
+      googleUsersCount: data.googleUsersCount || 0,
+      appleUsersCount: data.appleUsersCount || 0,
+      emailUsersCount: data.emailUsersCount || 0,
+      newUsersToday: data.newUsersToday || 0,
+      usersList: (data.usersList || []).map((u: any) => ({
+        id: u.id,
+        name: u.name || u.username || 'Creator',
+        email: u.email,
+        provider: u.provider || 'Email',
+        avatarUrl: u.avatarUrl,
+        joinedDate: u.joinedDate || u.createdAt || new Date().toISOString(),
+        savedPromptsCount: u.savedPromptsCount || 0,
+        enabled: u.enabled !== undefined ? u.enabled : true,
+      })),
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.warn('API error fetching real user stats:', err);
+    return {
+      totalUsers: 0,
+      googleUsersCount: 0,
+      appleUsersCount: 0,
+      emailUsersCount: 0,
+      newUsersToday: 0,
+      usersList: [],
     };
   }
 }

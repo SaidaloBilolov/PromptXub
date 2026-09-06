@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
@@ -19,7 +22,16 @@ public class UserAdminController {
     }
 
     /**
-     * Get aggregate user growth, auth provider breakdown, and recent user profiles.
+     * Get real users list from PostgreSQL database.
+     */
+    @GetMapping
+    public ResponseEntity<List<UserSummaryDto>> getAllUsers() {
+        List<UserSummaryDto> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    /**
+     * Get aggregate real user growth, auth provider breakdown, and registered user profiles.
      */
     @GetMapping("/stats")
     public ResponseEntity<UserStatsResponse> getUserStats() {
@@ -30,7 +42,7 @@ public class UserAdminController {
     /**
      * Toggle user status (Active / Blocked).
      */
-    @PutMapping("/{id}/toggle-status")
+    @PutMapping({"/{id}/status", "/{id}/toggle-status"})
     public ResponseEntity<UserSummaryDto> toggleUserStatus(@PathVariable Long id) {
         UserSummaryDto user = userService.toggleUserStatus(id);
         return ResponseEntity.ok(user);
