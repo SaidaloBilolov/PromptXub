@@ -10,30 +10,43 @@ interface PageProps {
   params: { id: string };
 }
 
-// OpenGraph / Twitter dynamic social media metadata generation
+// Dynamic OpenGraph / Twitter social media metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const prompt = await fetchPromptById(params.id);
 
   if (!prompt) {
     return {
-      title: 'Prompt Not Found — PromptXub',
+      title: 'Prompt Not Found - AI Prompt | PromptXub',
       description: 'The requested AI prompt could not be found on PromptXub.',
     };
   }
 
-  const title = `${prompt.title} | PromptXub AI Showcase`;
-  const description = `${prompt.aiModel} Prompt: "${prompt.promptText.substring(0, 160)}..."`;
-  const shareUrl = `https://promptxub.uz/prompt/${prompt.id}`;
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://promptxub.uz').replace(/\/+$/, '');
+  const title = `${prompt.title} - AI Prompt | PromptXub`;
+  const description = `${prompt.promptText.substring(0, 140)}... (${prompt.aiModel}${prompt.category ? `, ${prompt.category.name}` : ''})`;
+  const shareUrl = `${siteUrl}/prompt/${prompt.id}`;
+
+  const keywords = [
+    prompt.aiModel,
+    prompt.category?.name || 'AI Showcase',
+    ...(prompt.tags?.map((t) => t.name) || []),
+    'AI Prompts',
+    'Midjourney',
+    'Flux.1',
+    'Runway Gen-3',
+    'PromptXub',
+  ];
 
   return {
     title,
     description,
+    keywords,
     openGraph: {
       title,
       description,
       url: shareUrl,
       siteName: 'PromptXub AI Showcase',
-      type: prompt.contentType === 'VIDEO' ? 'video.other' : 'article',
+      type: prompt.contentType === 'VIDEO' ? 'video.other' : 'website',
       images: [
         {
           url: prompt.mediaUrl,
