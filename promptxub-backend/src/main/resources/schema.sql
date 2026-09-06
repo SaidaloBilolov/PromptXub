@@ -76,6 +76,12 @@ CREATE TABLE IF NOT EXISTS prompts (
     updated_at TIMESTAMP WITH TIME ZONE
 );
 
+-- Ensure all columns exist on existing tables
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS real_copy_count BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS real_view_count BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS display_copy_count BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS display_view_count BIGINT NOT NULL DEFAULT 0;
+
 -- 7. Prompt Tags Join Table
 CREATE TABLE IF NOT EXISTS prompt_tags (
     prompt_id BIGINT NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
