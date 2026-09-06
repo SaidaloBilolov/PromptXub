@@ -184,6 +184,30 @@ public class PromptAdminController {
     }
 
     /**
+     * Admin endpoint to create new prompt with media file.
+     */
+    @PostMapping(value = "/admin/prompts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Prompt> createPrompt(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam("title") String title,
+            @RequestParam("promptText") String promptText,
+            @RequestParam(value = "negativePrompt", required = false) String negativePrompt,
+            @RequestParam("aiModel") String aiModel,
+            @RequestParam("contentType") String contentType,
+            @RequestParam(value = "aspectRatio", required = false) String aspectRatio,
+            @RequestParam(value = "categorySlug", required = false) String categorySlug,
+            @RequestParam(value = "tags", required = false) String tags,
+            @RequestParam(value = "displayCopyCount", required = false) Long displayCopyCount,
+            @RequestParam(value = "displayViewCount", required = false) Long displayViewCount) throws Exception {
+        Prompt prompt = promptService.createPromptWithMedia(
+                file, title, promptText, negativePrompt, aiModel,
+                contentType, aspectRatio, categorySlug, tags,
+                displayCopyCount, displayViewCount
+        );
+        return ResponseEntity.ok(prompt);
+    }
+
+    /**
      * Admin endpoint to update prompt details including viewCount and copyCount.
      */
     @PutMapping("/admin/prompts/{id}")

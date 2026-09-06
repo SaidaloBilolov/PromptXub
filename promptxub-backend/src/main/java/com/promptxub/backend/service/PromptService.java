@@ -1,18 +1,123 @@
 package com.promptxub.backend.service;
 
+import com.promptxub.backend.dto.MediaUploadResponse;
 import com.promptxub.backend.dto.PromptUpdateRequest;
+import com.promptxub.backend.entity.Category;
+import com.promptxub.backend.entity.ContentType;
 import com.promptxub.backend.entity.Prompt;
+import com.promptxub.backend.entity.Tag;
+import com.promptxub.backend.repository.CategoryRepository;
 import com.promptxub.backend.repository.PromptRepository;
+import com.promptxub.backend.repository.TagRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class PromptService {
 
-    private final PromptRepository promptRepository;
+    private static final Logger log = LoggerFactory.getLogger(PromptService.class);
 
-    public PromptService(PromptRepository promptRepository) {
+    private final PromptRepository promptRepository;
+    private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
+    private final ImageKitService imageKitService;
+
+    public PromptService(PromptRepository promptRepository,
+                         CategoryRepository categoryRepository,
+                         TagRepository tagRepository,
+                         ImageKitService imageKitService) {
         this.promptRepository = promptRepository;
+        this.categoryRepository = categoryRepository;
+        this.tagRepository = tagRepository;
+        this.imageKitService = imageKitService;
+    }
+
+    @Transactional
+    public Prompt createPromptWithMedia(MultipartFile file,
+                                         String title,
+                                         String promptText,
+                                         String negativePrompt,
+                                         String aiModel,
+                                         String contentTypeStr,
+                                         String aspectRatio,
+                                         String categorySlug,
+                                         String tagsStr,
+                                         Long displayCopyCount,
+                                         Long displayViewCount) {
+        ContentType type = ContentType.PHOTO;
+        if (contentTypeStr != null && contentTypeStr.equalsIgnoreCase("VIDEO")) {
+            type = ContentType.VIDEO;
+        }
+
+        String mediaUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop";
+        String mediaPublicId = null;
+        String thumbUrl = null;
+        Integer width = null;
+        Integer height = null;
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                MediaUploadResponse uploadRes = imageKitService.uploadMedia(file, type);
+                if (uploadRes != null && uploadRes.getUrl() != null) {
+                    mediaUrl = uploadRes.getUrl();
+                    mediaPublicId = uploadRes.getFileId();
+                    thumbUrl = uploadRes.getThumbnailUrl();
+                    width = uploadRes.getWidth();
+                    height = uploadRes.getHeight();
+                }
+            } catch (Exception ex) {
+                log.warn("Media upload failed, using fallback URL: {}", ex.getMessage());
+            }
+        }
+
+        Category category = null;
+        if (categorySlug != null && !categorySlug.isBlank()) {
+            category = categoryRepository.findBySlug(categorySlug).orElse(null);
+        }
+
+        Set<Tag> tagSet = new HashSet<>();
+        if (tagsStr != null && !tagsStr.isBlank()) {
+            String[] split = tagsStr.split(",");
+            for (String t : split) {
+                String clean = t.trim().toLowerCase().replace("#", "");
+                if (!clean.isEmpty()) {
+                    Tag tag = tagRepository.findBySlug(clean)
+                            .orElseGet(() -> tagRepository.save(Tag.builder().name(clean).slug(clean).build()));
+                    tagSet.add(tag);
+                }
+            }
+        }
+
+        Prompt prompt = Prompt.builder()
+                .title(title)
+                .promptText(promptText)
+                .negativePrompt(negativePrompt)
+                .aiModel(aiModel)
+                .contentType(type)
+                .mediaUrl(mediaUrl)
+                .mediaPublicId(mediaPublicId)
+                .thumbnailUrl(thumbUrl)
+                .aspectRatio(aspectRatio != null ? aspectRatio : "16:9")
+                .width(width)
+                .height(height)
+                .displayCopyCount(displayCopyCount != null ? displayCopyCount : 0L)
+                .displayViewCount(displayViewCount != null ? displayViewCount : 0L)
+                .realCopyCount(0L)
+                .realViewCount(0L)
+                .isFeatured(true)
+                .isActive(true)
+                .category(category)
+                .tags(tagSet)
+                .build();
+
+        return promptRepository.save(prompt);
     }
 
     @Transactional
