@@ -32,11 +32,6 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [selectedStylize, setSelectedStylize] = useState<string | null>(null);
 
-  // Mobile Swipe-down to Dismiss Gesture States
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const [touchOffsetY, setTouchOffsetY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -143,47 +138,14 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
     }
   };
 
-  // Touch handlers for mobile swipe-down to dismiss
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartY(e.touches[0].clientY);
-    setIsDragging(true);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY === null) return;
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - touchStartY;
-
-    if (deltaY > 0) {
-      setTouchOffsetY(deltaY);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (touchOffsetY > 90) {
-      onClose();
-    } else {
-      setTouchOffsetY(0);
-    }
-    setTouchStartY(null);
-    setIsDragging(false);
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8 bg-black/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-8 bg-black/85 backdrop-blur-md animate-fadeIn">
       {/* Click outside to close */}
       <div className="fixed inset-0" onClick={onClose} />
 
       {/* Modal Container */}
       <div
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{
-          transform: touchOffsetY > 0 ? `translateY(${touchOffsetY}px)` : undefined,
-          transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0,0,0.2,1)',
-        }}
-        className="relative w-full max-w-5xl bg-[#0F172A] border border-slate-700/80 rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row max-h-[92vh] md:max-h-[90vh]"
+        className="relative w-full h-full sm:h-auto max-w-5xl bg-[#0F172A] sm:border border-slate-700/80 rounded-none sm:rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row sm:max-h-[92vh] md:max-h-[90vh]"
       >
         {/* Sticky Universal Close Button (Mobile & Desktop) */}
         <button
@@ -195,13 +157,8 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           <X className="w-5 h-5 text-white" />
         </button>
 
-        {/* Mobile Top Drag Indicator Handle */}
-        <div className="w-full flex justify-center pt-3 pb-1 md:hidden bg-slate-900/60 border-b border-slate-800/60 shrink-0 cursor-grab active:cursor-grabbing">
-          <div className="w-12 h-1.5 bg-slate-600/80 rounded-full" />
-        </div>
-
         {/* Left: Media Display */}
-        <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[200px] max-h-[35vh] sm:max-h-[45vh] md:max-h-full shrink-0">
+        <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[220px] max-h-[40vh] sm:max-h-[45vh] md:max-h-full shrink-0">
           {prompt.contentType === 'VIDEO' ? (
             <video
               src={prompt.mediaUrl}
