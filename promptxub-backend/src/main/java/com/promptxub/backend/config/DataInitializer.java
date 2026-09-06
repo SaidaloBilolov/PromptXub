@@ -42,9 +42,13 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        initRoles();
-        initDefaultAdmin();
-        initDefaultCategories();
+        try {
+            initRoles();
+            initDefaultAdmin();
+            initDefaultCategories();
+        } catch (Exception ex) {
+            log.warn("⚠️ Data initialization warning (will retry on next launch or migration): {}", ex.getMessage());
+        }
     }
 
     private void initRoles() {

@@ -50,6 +50,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- H2 In-Memory Database Fallback for High-Availability Cloud Boots -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- ImageKit Java SDK for Image and Video management -->
         <dependency>
             <groupId>io.imagekit</groupId>
