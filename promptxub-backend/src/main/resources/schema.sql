@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE
 );
 
+-- Drop legacy 'role' column if present from previous migrations to fix NOT NULL constraint
+ALTER TABLE users DROP COLUMN IF EXISTS role;
+
 -- 3. User Roles Join Table
 CREATE TABLE IF NOT EXISTS user_roles (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
