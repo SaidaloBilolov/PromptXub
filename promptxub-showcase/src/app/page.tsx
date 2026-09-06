@@ -135,6 +135,14 @@ export default function ShowcasePage() {
     dismissAuthModal();
   };
 
+  const handleUpdatePromptMetrics = (promptId: number, views: number, copies: number) => {
+    setPrompts((prev) =>
+      prev.map((p) =>
+        p.id === promptId ? { ...p, viewCount: views, copyCount: copies } : p
+      )
+    );
+  };
+
   return (
     <main className="flex-1 flex flex-col min-h-screen">
       {/* Top Navbar */}
@@ -207,6 +215,7 @@ export default function ShowcasePage() {
         prompt={activeModalPrompt}
         onClose={() => setActiveModalPrompt(null)}
         onShowToast={showToast}
+        onUpdateMetrics={handleUpdatePromptMetrics}
       />
 
       {/* Progressive Engagement Soft-Gate & Manual Auth Login Modal */}

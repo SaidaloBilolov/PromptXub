@@ -1,25 +1,30 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, Sparkles, Sliders, Download } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Sliders, Download, Eye, Flame } from 'lucide-react';
 import { Prompt } from '@/types';
-import { incrementCopyCount } from '@/lib/api';
+import { incrementCopyCount, incrementViewCount } from '@/lib/api';
+import { formatCompactNumber } from '@/lib/utils';
 import { ShareButton } from './ShareButton';
-import { getImageKitWatermarkUrl, getOptimizedMediaUrl } from '@/lib/imagekit';
+import { getOptimizedMediaUrl } from '@/lib/imagekit';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;
   onClose: () => void;
   onShowToast: (msg: string) => void;
+  onUpdateMetrics?: (promptId: number, views: number, copies: number) => void;
 }
 
 export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
   prompt,
   onClose,
   onShowToast,
+  onUpdateMetrics,
 }) => {
   const [copied, setCopied] = useState(false);
   const [copiedNegative, setCopiedNegative] = useState(false);
+  const [localViews, setLocalViews] = useState<number>(0);
+  const [localCopies, setLocalCopies] = useState<number>(0);
 
   // Quick Prompt Parameter Variator States
   const [customPromptText, setCustomPromptText] = useState<string>('');
@@ -42,6 +47,17 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 
   useEffect(() => {
     if (prompt) {
+      const newViews = (prompt.viewCount || 0) + 1;
+      const initialCopies = prompt.copyCount || 0;
+      setLocalViews(newViews);
+      setLocalCopies(initialCopies);
+
+      // Track view on backend
+      incrementViewCount(prompt.id);
+      if (onUpdateMetrics) {
+        onUpdateMetrics(prompt.id, newViews, initialCopies);
+      }
+
       setCustomPromptText(prompt.promptText);
       const arMatch = prompt.promptText.match(/--(?:ar|aspect)\s+([0-9]+:[0-9]+)/i);
       setSelectedAr(arMatch ? arMatch[1] : null);
@@ -102,7 +118,12 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
       const textToCopy = customPromptText || prompt.promptText;
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
+      const newCopies = localCopies + 1;
+      setLocalCopies(newCopies);
       incrementCopyCount(prompt.id);
+      if (onUpdateMetrics) {
+        onUpdateMetrics(prompt.id, localViews, newCopies);
+      }
       onShowToast('Prompt copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -153,7 +174,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
       {/* Click outside to close */}
       <div className="fixed inset-0" onClick={onClose} />
 
-      {/* Modal Container (Bottom Sheet on Mobile, Centered Modal on Desktop) */}
+      {/* Modal Container */}
       <div
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -164,13 +185,23 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
         }}
         className="relative w-full max-w-5xl bg-[#0F172A] border border-slate-700/80 rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row max-h-[92vh] md:max-h-[90vh]"
       >
+        {/* Sticky Universal Close Button (Mobile & Desktop) */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-50 p-2.5 rounded-full bg-slate-900/90 text-slate-200 hover:text-white hover:bg-slate-800 border border-slate-700/80 backdrop-blur-xl shadow-xl transition active:scale-95 flex items-center justify-center cursor-pointer"
+          title="Close modal (Esc)"
+          aria-label="Close modal"
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+
         {/* Mobile Top Drag Indicator Handle */}
         <div className="w-full flex justify-center pt-3 pb-1 md:hidden bg-slate-900/60 border-b border-slate-800/60 shrink-0 cursor-grab active:cursor-grabbing">
           <div className="w-12 h-1.5 bg-slate-600/80 rounded-full" />
         </div>
 
-        {/* Left: Media Display (Photo / Video) */}
-        <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[260px] sm:min-h-[340px] md:min-h-full shrink-0">
+        {/* Left: Media Display */}
+        <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[200px] max-h-[35vh] sm:max-h-[45vh] md:max-h-full shrink-0">
           {prompt.contentType === 'VIDEO' ? (
             <video
               src={prompt.mediaUrl}
@@ -181,17 +212,16 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
               loop
               playsInline
               preload="metadata"
-              className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
+              className="w-full h-full max-h-[35vh] sm:max-h-[45vh] md:max-h-[85vh] object-contain"
             />
           ) : (
             <img
               src={getOptimizedMediaUrl(prompt.mediaUrl, { width: 1200 })}
               alt={prompt.title}
-              className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
+              className="w-full h-full max-h-[35vh] sm:max-h-[45vh] md:max-h-[85vh] object-contain"
             />
           )}
 
-          {/* Quick link to view original */}
           <a
             href={prompt.mediaUrl}
             target="_blank"
@@ -204,12 +234,11 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
         </div>
 
         {/* Right: Details & Prompt Parameters */}
-        <div className="w-full md:w-1/2 p-5 sm:p-8 flex flex-col overflow-y-auto space-y-6 flex-1">
+        <div className="w-full md:w-1/2 p-4 sm:p-6 md:p-8 flex flex-col overflow-y-auto space-y-5 flex-1">
           
           {/* Header & Badges */}
-          <div>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              {/* Badges */}
+          <div className="pr-10">
+            <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800">
                   {prompt.aiModel}
@@ -224,25 +253,33 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                 )}
               </div>
 
-              {/* Actions: Share & Desktop Close Button */}
-              <div className="flex items-center gap-3 shrink-0">
-                <ShareButton
-                  promptId={prompt.id}
-                  title={prompt.title}
-                  promptText={customPromptText || prompt.promptText}
-                  variant="modal"
-                  onShowToast={onShowToast}
-                />
-                <button
-                  onClick={onClose}
-                  className="hidden md:flex items-center justify-center p-2 rounded-xl bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/80 backdrop-blur-md transition hover:scale-105 active:scale-95"
-                  title="Close modal (Esc)"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+              <ShareButton
+                promptId={prompt.id}
+                title={prompt.title}
+                promptText={customPromptText || prompt.promptText}
+                variant="modal"
+                onShowToast={onShowToast}
+              />
+            </div>
+            <h2 className="text-lg sm:text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
+          </div>
+
+          {/* Real-time Counter Stats Bar */}
+          <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-cyan-400" />
+              <div>
+                <span className="text-[10px] text-slate-400 block">Views</span>
+                <span className="font-bold text-cyan-300">{formatCompactNumber(localViews)}</span>
               </div>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-orange-400" />
+              <div>
+                <span className="text-[10px] text-slate-400 block">Copies</span>
+                <span className="font-bold text-purple-300">{formatCompactNumber(localCopies)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Quick Parameter Variator Controls */}
@@ -369,15 +406,9 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 
           {/* Parameters & Tags */}
           <div className="space-y-3 pt-2 border-t border-slate-800/80 text-xs">
-            <div className="grid grid-cols-2 gap-3 text-slate-400">
-              <div>
-                <span className="text-slate-500 block mb-0.5">Category:</span>
-                <span className="font-semibold text-slate-200">{prompt.category?.name || 'General AI'}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block mb-0.5">Total Copies:</span>
-                <span className="font-semibold text-purple-400">{prompt.copyCount.toLocaleString()} times</span>
-              </div>
+            <div>
+              <span className="text-slate-500 block mb-0.5">Category:</span>
+              <span className="font-semibold text-slate-200">{prompt.category?.name || 'General AI'}</span>
             </div>
 
             {prompt.tags && prompt.tags.length > 0 && (
