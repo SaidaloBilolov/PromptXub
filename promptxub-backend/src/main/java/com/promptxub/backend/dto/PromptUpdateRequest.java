@@ -10,6 +10,8 @@ public class PromptUpdateRequest {
     private String aspectRatio;
     private Long copyCount;
     private Long viewCount;
+    private Long displayCopyCount;
+    private Long displayViewCount;
     private Boolean isFeatured;
     private Boolean isActive;
     private String categorySlug;
@@ -74,7 +76,7 @@ public class PromptUpdateRequest {
     }
 
     public Long getCopyCount() {
-        return copyCount;
+        return copyCount != null ? copyCount : displayCopyCount;
     }
 
     public void setCopyCount(Long copyCount) {
@@ -82,11 +84,27 @@ public class PromptUpdateRequest {
     }
 
     public Long getViewCount() {
-        return viewCount;
+        return viewCount != null ? viewCount : displayViewCount;
     }
 
     public void setViewCount(Long viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public Long getDisplayCopyCount() {
+        return displayCopyCount != null ? displayCopyCount : copyCount;
+    }
+
+    public void setDisplayCopyCount(Long displayCopyCount) {
+        this.displayCopyCount = displayCopyCount;
+    }
+
+    public Long getDisplayViewCount() {
+        return displayViewCount != null ? displayViewCount : viewCount;
+    }
+
+    public void setDisplayViewCount(Long displayViewCount) {
+        this.displayViewCount = displayViewCount;
     }
 
     public Boolean getIsFeatured() {

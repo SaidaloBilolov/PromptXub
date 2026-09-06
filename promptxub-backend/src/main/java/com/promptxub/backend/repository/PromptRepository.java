@@ -41,17 +41,26 @@ public interface PromptRepository extends JpaRepository<Prompt, Long>, JpaSpecif
                                             Pageable pageable);
 
     @Modifying
-    @Query("UPDATE Prompt p SET p.copyCount = p.copyCount + 1 WHERE p.id = :id")
+    @Query("UPDATE Prompt p SET p.realCopyCount = p.realCopyCount + 1, p.displayCopyCount = p.displayCopyCount + 1 WHERE p.id = :id")
     int incrementCopyCount(@Param("id") Long id);
 
     @Modifying
-    @Query("UPDATE Prompt p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
+    @Query("UPDATE Prompt p SET p.realViewCount = p.realViewCount + 1, p.displayViewCount = p.displayViewCount + 1 WHERE p.id = :id")
     int incrementViewCount(@Param("id") Long id);
 
-    List<Prompt> findTop10ByIsActiveTrueOrderByCopyCountDesc();
+    List<Prompt> findTop10ByIsActiveTrueOrderByDisplayCopyCountDesc();
 
-    @Query("SELECT COALESCE(SUM(p.copyCount), 0) FROM Prompt p")
+    @Query("SELECT COALESCE(SUM(p.displayCopyCount), 0) FROM Prompt p")
     Long getTotalCopyCount();
+
+    @Query("SELECT COALESCE(SUM(p.realCopyCount), 0) FROM Prompt p")
+    Long getTotalRealCopyCount();
+
+    @Query("SELECT COALESCE(SUM(p.displayViewCount), 0) FROM Prompt p")
+    Long getTotalViewCount();
+
+    @Query("SELECT COALESCE(SUM(p.realViewCount), 0) FROM Prompt p")
+    Long getTotalRealViewCount();
 
     @Query("SELECT COUNT(p) FROM Prompt p WHERE p.contentType = :contentType")
     Long countByContentType(@Param("contentType") ContentType contentType);

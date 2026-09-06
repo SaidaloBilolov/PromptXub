@@ -69,11 +69,17 @@ public class Prompt {
 
     private Double duration;
 
-    @Column(name = "copy_count", nullable = false)
-    private Long copyCount = 0L;
+    @Column(name = "real_copy_count", nullable = false)
+    private Long realCopyCount = 0L;
 
-    @Column(name = "view_count", nullable = false)
-    private Long viewCount = 0L;
+    @Column(name = "real_view_count", nullable = false)
+    private Long realViewCount = 0L;
+
+    @Column(name = "display_copy_count", nullable = false)
+    private Long displayCopyCount = 0L;
+
+    @Column(name = "display_view_count", nullable = false)
+    private Long displayViewCount = 0L;
 
     @Column(name = "is_featured", nullable = false)
     private Boolean isFeatured = false;
@@ -108,9 +114,10 @@ public class Prompt {
 
     public Prompt(Long id, String title, String promptText, String negativePrompt, String aiModel,
                   ContentType contentType, String mediaUrl, String mediaPublicId, String thumbnailUrl,
-                  String aspectRatio, Integer width, Integer height, Double duration, Long copyCount,
-                  Long viewCount, Boolean isFeatured, Boolean isActive, Category category, User author,
-                  Set<Tag> tags, Instant createdAt, Instant updatedAt) {
+                  String aspectRatio, Integer width, Integer height, Double duration, Long realCopyCount,
+                  Long realViewCount, Long displayCopyCount, Long displayViewCount, Boolean isFeatured,
+                  Boolean isActive, Category category, User author, Set<Tag> tags, Instant createdAt,
+                  Instant updatedAt) {
         this.id = id;
         this.title = title;
         this.promptText = promptText;
@@ -124,8 +131,10 @@ public class Prompt {
         this.width = width;
         this.height = height;
         this.duration = duration;
-        this.copyCount = (copyCount != null) ? copyCount : 0L;
-        this.viewCount = (viewCount != null) ? viewCount : 0L;
+        this.realCopyCount = (realCopyCount != null) ? realCopyCount : 0L;
+        this.realViewCount = (realViewCount != null) ? realViewCount : 0L;
+        this.displayCopyCount = (displayCopyCount != null) ? displayCopyCount : 0L;
+        this.displayViewCount = (displayViewCount != null) ? displayViewCount : 0L;
         this.isFeatured = (isFeatured != null) ? isFeatured : false;
         this.isActive = (isActive != null) ? isActive : true;
         this.category = category;
@@ -243,20 +252,68 @@ public class Prompt {
         this.duration = duration;
     }
 
+    public Long getRealCopyCount() {
+        return realCopyCount != null ? realCopyCount : 0L;
+    }
+
+    public void setRealCopyCount(Long realCopyCount) {
+        this.realCopyCount = realCopyCount;
+    }
+
+    public Long getRealViewCount() {
+        return realViewCount != null ? realViewCount : 0L;
+    }
+
+    public void setRealViewCount(Long realViewCount) {
+        this.realViewCount = realViewCount;
+    }
+
+    public Long getDisplayCopyCount() {
+        return displayCopyCount != null ? displayCopyCount : 0L;
+    }
+
+    public void setDisplayCopyCount(Long displayCopyCount) {
+        this.displayCopyCount = displayCopyCount;
+    }
+
+    public Long getDisplayViewCount() {
+        return displayViewCount != null ? displayViewCount : 0L;
+    }
+
+    public void setDisplayViewCount(Long displayViewCount) {
+        this.displayViewCount = displayViewCount;
+    }
+
     public Long getCopyCount() {
-        return copyCount;
+        return getDisplayCopyCount();
     }
 
     public void setCopyCount(Long copyCount) {
-        this.copyCount = copyCount;
+        this.displayCopyCount = (copyCount != null) ? copyCount : 0L;
     }
 
     public Long getViewCount() {
-        return viewCount;
+        return getDisplayViewCount();
     }
 
     public void setViewCount(Long viewCount) {
-        this.viewCount = viewCount;
+        this.displayViewCount = (viewCount != null) ? viewCount : 0L;
+    }
+
+    public Double getConversionRate() {
+        Long rViews = getRealViewCount();
+        if (rViews == 0L) return 0.0;
+        return Math.round(((double) getRealCopyCount() / rViews * 100.0) * 10.0) / 10.0;
+    }
+
+    public void incrementView() {
+        this.realViewCount = getRealViewCount() + 1;
+        this.displayViewCount = getDisplayViewCount() + 1;
+    }
+
+    public void incrementCopy() {
+        this.realCopyCount = getRealCopyCount() + 1;
+        this.displayCopyCount = getDisplayCopyCount() + 1;
     }
 
     public Boolean getIsFeatured() {
@@ -329,8 +386,10 @@ public class Prompt {
         private Integer width;
         private Integer height;
         private Double duration;
-        private Long copyCount = 0L;
-        private Long viewCount = 0L;
+        private Long realCopyCount = 0L;
+        private Long realViewCount = 0L;
+        private Long displayCopyCount = 0L;
+        private Long displayViewCount = 0L;
         private Boolean isFeatured = false;
         private Boolean isActive = true;
         private Category category;
@@ -404,13 +463,33 @@ public class Prompt {
             return this;
         }
 
+        public Builder realCopyCount(Long realCopyCount) {
+            this.realCopyCount = realCopyCount;
+            return this;
+        }
+
+        public Builder realViewCount(Long realViewCount) {
+            this.realViewCount = realViewCount;
+            return this;
+        }
+
+        public Builder displayCopyCount(Long displayCopyCount) {
+            this.displayCopyCount = displayCopyCount;
+            return this;
+        }
+
+        public Builder displayViewCount(Long displayViewCount) {
+            this.displayViewCount = displayViewCount;
+            return this;
+        }
+
         public Builder copyCount(Long copyCount) {
-            this.copyCount = copyCount;
+            this.displayCopyCount = copyCount;
             return this;
         }
 
         public Builder viewCount(Long viewCount) {
-            this.viewCount = viewCount;
+            this.displayViewCount = viewCount;
             return this;
         }
 
@@ -451,8 +530,9 @@ public class Prompt {
 
         public Prompt build() {
             return new Prompt(id, title, promptText, negativePrompt, aiModel, contentType, mediaUrl,
-                    mediaPublicId, thumbnailUrl, aspectRatio, width, height, duration, copyCount,
-                    viewCount, isFeatured, isActive, category, author, tags, createdAt, updatedAt);
+                    mediaPublicId, thumbnailUrl, aspectRatio, width, height, duration, realCopyCount,
+                    realViewCount, displayCopyCount, displayViewCount, isFeatured, isActive, category,
+                    author, tags, createdAt, updatedAt);
         }
     }
 }

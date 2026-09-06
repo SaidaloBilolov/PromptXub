@@ -32,11 +32,15 @@ public class PromptService {
         if (request.getAiModel() != null && !request.getAiModel().isBlank()) {
             prompt.setAiModel(request.getAiModel());
         }
-        if (request.getCopyCount() != null) {
-            prompt.setCopyCount(request.getCopyCount());
+        if (request.getDisplayCopyCount() != null) {
+            prompt.setDisplayCopyCount(request.getDisplayCopyCount());
+        } else if (request.getCopyCount() != null) {
+            prompt.setDisplayCopyCount(request.getCopyCount());
         }
-        if (request.getViewCount() != null) {
-            prompt.setViewCount(request.getViewCount());
+        if (request.getDisplayViewCount() != null) {
+            prompt.setDisplayViewCount(request.getDisplayViewCount());
+        } else if (request.getViewCount() != null) {
+            prompt.setDisplayViewCount(request.getViewCount());
         }
         if (request.getIsFeatured() != null) {
             prompt.setIsFeatured(request.getIsFeatured());
@@ -46,5 +50,9 @@ public class PromptService {
         }
 
         return promptRepository.save(prompt);
+    }
+
+    public java.util.List<Prompt> getAllPromptsForAdmin() {
+        return promptRepository.findAll();
     }
 }

@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
 public class PromptAdminController {
@@ -15,6 +17,16 @@ public class PromptAdminController {
 
     public PromptAdminController(PromptService promptService) {
         this.promptService = promptService;
+    }
+
+    /**
+     * Admin endpoint to get all prompts with real and display metrics.
+     */
+    @GetMapping("/admin/prompts")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    public ResponseEntity<List<Prompt>> getAllPrompts() {
+        List<Prompt> prompts = promptService.getAllPromptsForAdmin();
+        return ResponseEntity.ok(prompts);
     }
 
     /**
