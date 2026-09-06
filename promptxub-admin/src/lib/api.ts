@@ -60,7 +60,7 @@ export async function createPromptWithMedia(formData: FormData) {
 
 export async function updatePromptMetrics(
   id: number,
-  data: { viewCount?: number; copyCount?: number; title?: string; aiModel?: string }
+  data: { viewCount?: number; copyCount?: number; displayViewCount?: number; displayCopyCount?: number; title?: string; aiModel?: string }
 ) {
   try {
     return await apiClient(`/admin/prompts/${id}`, {
@@ -71,6 +71,12 @@ export async function updatePromptMetrics(
     console.warn('API error updating prompt metrics:', err);
     return { success: true, id, ...data };
   }
+}
+
+export async function deletePrompt(id: number) {
+  return await apiClient(`/admin/prompts/${id}`, {
+    method: 'DELETE',
+  });
 }
 
 export async function fetchUserStats(): Promise<UserStats> {

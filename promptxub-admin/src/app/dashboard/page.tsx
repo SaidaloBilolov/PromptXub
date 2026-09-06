@@ -6,7 +6,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { AdminNavbar } from '@/components/AdminNavbar';
 import { AnalyticsChart } from '@/components/AnalyticsChart';
 import { AdminStats, UserStats } from '@/types';
-import { fetchAdminStats, fetchUserStats, updatePromptMetrics } from '@/lib/api';
+import { fetchAdminStats, fetchUserStats, updatePromptMetrics, deletePrompt } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import {
   Sparkles,
@@ -28,6 +28,7 @@ import {
   X,
   AlertTriangle,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -48,6 +49,10 @@ export default function DashboardPage() {
   } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Delete Prompt State
+  const [deletingPromptId, setDeletingPromptId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const SHOWCASE_PUBLIC_URL = (process.env.NEXT_PUBLIC_SHOWCASE_URL || 'https://promptxub.uz').replace(/\/+$/, '');
 
   const handleCopyPublicLink = async (promptId: number) => {
@@ -58,6 +63,25 @@ export default function DashboardPage() {
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error('Failed to copy public link', err);
+    }
+  };
+
+  const handleDeletePrompt = async (id: number) => {
+    setIsDeleting(true);
+    try {
+      await deletePrompt(id);
+      if (stats) {
+        setStats({
+          ...stats,
+          topCopiedPrompts: stats.topCopiedPrompts.filter((p) => p.id !== id),
+          totalPrompts: Math.max(0, stats.totalPrompts - 1),
+        });
+      }
+      setDeletingPromptId(null);
+    } catch (err) {
+      console.error('Failed to delete prompt:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -512,6 +536,14 @@ export default function DashboardPage() {
                                   </>
                                 )}
                               </button>
+                              <button
+                                onClick={() => setDeletingPromptId(item.id)}
+                                title="Delete Prompt"
+                                className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 hover:text-white border border-rose-800/60 transition active:scale-95 flex items-center gap-1 text-[11px] font-semibold"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                                <span>Delete</span>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -633,6 +665,40 @@ export default function DashboardPage() {
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Save Changes</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Prompt Confirmation Modal */}
+      {deletingPromptId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[#0F172A] border border-rose-900/60 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-950/80 border border-rose-800/80 flex items-center justify-center text-rose-400">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-lg font-bold text-white">Promptni o'chirishni tasdiqlaysizmi?</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Ushbu prompt va unga bog'langan barcha statistik ma'lumotlar butunlay o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi.
+            </p>
+
+            <div className="flex items-center justify-center gap-3 pt-3">
+              <button
+                onClick={() => setDeletingPromptId(null)}
+                disabled={isDeleting}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={() => handleDeletePrompt(deletingPromptId)}
+                disabled={isDeleting}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 shadow-lg shadow-rose-600/30 transition"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                <span>Ha, O'chirish</span>
               </button>
             </div>
           </div>
