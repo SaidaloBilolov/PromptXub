@@ -66,14 +66,26 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Preflight CORS requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/public/**").permitAll()
-                        .requestMatchers("/api/v1/health").permitAll()
-                        .requestMatchers("/error").permitAll()
 
-                        // Admin & Moderator endpoints
+                        // Health check endpoints
+                        .requestMatchers("/api/v1/health", "/health").permitAll()
+
+                        // Authentication endpoints
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+
+                        // Public API routes (Showcase Website & Public consumers)
+                        .requestMatchers("/api/v1/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/prompts", "/api/v1/prompts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/prompts/*/copy", "/api/v1/prompts/**/copy").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/media", "/api/v1/media/**").permitAll()
+
+                        // Static resources and error dispatches
+                        .requestMatchers("/error", "/favicon.ico").permitAll()
+
+                        // Administrative endpoints (strictly require JWT authentication and ADMIN/MODERATOR role)
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "MODERATOR")
 
                         // Any other request must be authenticated
