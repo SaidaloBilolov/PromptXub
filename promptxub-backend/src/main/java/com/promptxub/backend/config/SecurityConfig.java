@@ -79,6 +79,7 @@ public class SecurityConfig {
 
                         // Public API routes (Showcase Website & Public consumers)
                         .requestMatchers("/api/v1/public/**").permitAll()
+                        .requestMatchers("/api/v1/ai/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/prompts", "/api/v1/prompts/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/prompts/*/copy", "/api/v1/prompts/**/copy").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()

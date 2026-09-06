@@ -6,6 +6,7 @@ import { Prompt } from '@/types';
 import { formatCompactNumber } from '@/lib/utils';
 import { incrementCopyCount } from '@/lib/api';
 import { ShareButton } from './ShareButton';
+import { getImageKitWatermarkUrl } from '@/lib/imagekit';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -61,7 +62,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           <div className="w-full h-full relative">
             <video
               src={prompt.mediaUrl}
-              poster={prompt.thumbnailUrl}
+              poster={getImageKitWatermarkUrl(prompt.thumbnailUrl || prompt.mediaUrl)}
               autoPlay
               muted
               loop
@@ -77,7 +78,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           </div>
         ) : (
           <img
-            src={prompt.mediaUrl}
+            src={getImageKitWatermarkUrl(prompt.mediaUrl)}
             alt={prompt.title}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchPromptById } from '@/lib/api';
 import { ShareButton } from '@/components/ShareButton';
+import { getImageKitWatermarkUrl } from '@/lib/imagekit';
 import { ArrowLeft, Sparkles, Sliders, Flame, Eye, Copy, Download, Layers, Film, Camera } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -124,7 +125,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
             {prompt.contentType === 'VIDEO' ? (
               <video
                 src={prompt.mediaUrl}
-                poster={prompt.thumbnailUrl}
+                poster={getImageKitWatermarkUrl(prompt.thumbnailUrl || prompt.mediaUrl)}
                 controls
                 autoPlay
                 muted
@@ -135,7 +136,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
               />
             ) : (
               <img
-                src={prompt.mediaUrl}
+                src={getImageKitWatermarkUrl(prompt.mediaUrl)}
                 alt={prompt.title}
                 className="w-full h-full max-h-[75vh] object-contain"
               />

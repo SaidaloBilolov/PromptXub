@@ -5,6 +5,7 @@ import { X, Copy, Check, Sparkles, Sliders, Download } from 'lucide-react';
 import { Prompt } from '@/types';
 import { incrementCopyCount } from '@/lib/api';
 import { ShareButton } from './ShareButton';
+import { getImageKitWatermarkUrl } from '@/lib/imagekit';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;
@@ -20,6 +21,12 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [copiedNegative, setCopiedNegative] = useState(false);
 
+  // Quick Prompt Parameter Variator States
+  const [customPromptText, setCustomPromptText] = useState<string>('');
+  const [selectedAr, setSelectedAr] = useState<string | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [selectedStylize, setSelectedStylize] = useState<string | null>(null);
+
   // Mobile Swipe-down to Dismiss Gesture States
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touchOffsetY, setTouchOffsetY] = useState(0);
@@ -33,11 +40,67 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    if (prompt) {
+      setCustomPromptText(prompt.promptText);
+      const arMatch = prompt.promptText.match(/--(?:ar|aspect)\s+([0-9]+:[0-9]+)/i);
+      setSelectedAr(arMatch ? arMatch[1] : null);
+
+      const vMatch = prompt.promptText.match(/--(?:v|version)\s+([^\s]+)/i);
+      setSelectedVersion(vMatch ? vMatch[1] : null);
+
+      const sMatch = prompt.promptText.match(/--(?:s|stylize)\s+([0-9]+)/i);
+      setSelectedStylize(sMatch ? sMatch[1] : null);
+    }
+  }, [prompt]);
+
   if (!prompt) return null;
+
+  const updateParam = (paramKey: '--ar' | '--v' | '--s', value: string) => {
+    let updated = customPromptText || prompt.promptText;
+
+    if (paramKey === '--ar') {
+      const isSame = selectedAr === value;
+      const newAr = isSame ? null : value;
+      setSelectedAr(newAr);
+      if (updated.match(/--(?:ar|aspect)\s+[0-9]+:[0-9]+/i)) {
+        updated = newAr
+          ? updated.replace(/--(?:ar|aspect)\s+[0-9]+:[0-9]+/i, `--ar ${newAr}`)
+          : updated.replace(/\s*--(?:ar|aspect)\s+[0-9]+:[0-9]+/i, '');
+      } else if (newAr) {
+        updated = `${updated.trim()} --ar ${newAr}`;
+      }
+    } else if (paramKey === '--v') {
+      const isSame = selectedVersion === value;
+      const newV = isSame ? null : value;
+      setSelectedVersion(newV);
+      if (updated.match(/--(?:v|version)\s+[^\s]+/i)) {
+        updated = newV
+          ? updated.replace(/--(?:v|version)\s+[^\s]+/i, `--v ${newV}`)
+          : updated.replace(/\s*--(?:v|version)\s+[^\s]+/i, '');
+      } else if (newV) {
+        updated = `${updated.trim()} --v ${newV}`;
+      }
+    } else if (paramKey === '--s') {
+      const isSame = selectedStylize === value;
+      const newS = isSame ? null : value;
+      setSelectedStylize(newS);
+      if (updated.match(/--(?:s|stylize)\s+[0-9]+/i)) {
+        updated = newS
+          ? updated.replace(/--(?:s|stylize)\s+[0-9]+/i, `--s ${newS}`)
+          : updated.replace(/\s*--(?:s|stylize)\s+[0-9]+/i, '');
+      } else if (newS) {
+        updated = `${updated.trim()} --s ${newS}`;
+      }
+    }
+
+    setCustomPromptText(updated);
+  };
 
   const handleCopyPrompt = async () => {
     try {
-      await navigator.clipboard.writeText(prompt.promptText);
+      const textToCopy = customPromptText || prompt.promptText;
+      await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       incrementCopyCount(prompt.id);
       onShowToast('Prompt copied to clipboard!');
@@ -120,7 +183,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           {prompt.contentType === 'VIDEO' ? (
             <video
               src={prompt.mediaUrl}
-              poster={prompt.thumbnailUrl}
+              poster={getImageKitWatermarkUrl(prompt.thumbnailUrl || prompt.mediaUrl)}
               controls
               autoPlay
               muted
@@ -131,7 +194,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             />
           ) : (
             <img
-              src={prompt.mediaUrl}
+              src={getImageKitWatermarkUrl(prompt.mediaUrl)}
               alt={prompt.title}
               className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
             />
@@ -172,12 +235,85 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
               <ShareButton
                 promptId={prompt.id}
                 title={prompt.title}
-                promptText={prompt.promptText}
+                promptText={customPromptText || prompt.promptText}
                 variant="modal"
                 onShowToast={onShowToast}
               />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
+          </div>
+
+          {/* Quick Parameter Variator Controls */}
+          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-cyan-400">
+                <Sliders className="w-4 h-4" /> Quick Parameter Customizer
+              </span>
+              <span className="text-[11px] text-slate-400 font-normal">Click pills to adjust</span>
+            </div>
+
+            {/* Aspect Ratio Pills */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-medium text-slate-400">Aspect Ratio (--ar):</span>
+              <div className="flex flex-wrap gap-1.5">
+                {['16:9', '9:16', '1:1', '4:3', '21:9'].map((ar) => (
+                  <button
+                    key={ar}
+                    type="button"
+                    onClick={() => updateParam('--ar', ar)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                      selectedAr === ar
+                        ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/30'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
+                    }`}
+                  >
+                    --ar {ar}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Model Version Pills */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-medium text-slate-400">Model Version (--v):</span>
+              <div className="flex flex-wrap gap-1.5">
+                {['6.0', '5.2', '6.1', '5.1'].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => updateParam('--v', v)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                      selectedVersion === v
+                        ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
+                    }`}
+                  >
+                    --v {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Stylize Pills */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-medium text-slate-400">Stylize (--s):</span>
+              <div className="flex flex-wrap gap-1.5">
+                {['100', '250', '750'].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => updateParam('--s', s)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                      selectedStylize === s
+                        ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30'
+                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
+                    }`}
+                  >
+                    --s {s}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Prompt Text Section */}
@@ -204,7 +340,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
               </button>
             </div>
             <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 font-mono text-xs sm:text-sm text-slate-200 leading-relaxed select-all">
-              {prompt.promptText}
+              {customPromptText || prompt.promptText}
             </div>
           </div>
 

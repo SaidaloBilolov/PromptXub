@@ -195,3 +195,59 @@ export async function fetchPromptById(id: number | string): Promise<Prompt | nul
     return found || null;
   }
 }
+
+export interface SmartSearchResponse {
+  originalQuery: string;
+  optimizedQuery: string;
+  aiModel: string;
+  category: string;
+  suggestedKeywords: string[];
+}
+
+export interface EnhancePromptResponse {
+  originalPrompt: string;
+  enhancedPrompt: string;
+  aiModel: string;
+  suggestedParameters: string;
+}
+
+export async function smartSearchQuery(query: string): Promise<SmartSearchResponse> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/ai/smart-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    if (!res.ok) throw new Error('Smart search request failed');
+    return await res.json();
+  } catch (err) {
+    console.warn('Smart search API fallback:', err);
+    return {
+      originalQuery: query,
+      optimizedQuery: query,
+      aiModel: 'All',
+      category: 'All',
+      suggestedKeywords: ['AI Art', '4K', 'Cinematic'],
+    };
+  }
+}
+
+export async function enhancePromptText(prompt: string, aiModel?: string): Promise<EnhancePromptResponse> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/ai/enhance-prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, aiModel: aiModel || 'Midjourney v6' }),
+    });
+    if (!res.ok) throw new Error('Enhance prompt request failed');
+    return await res.json();
+  } catch (err) {
+    console.warn('Enhance prompt API fallback:', err);
+    return {
+      originalPrompt: prompt,
+      enhancedPrompt: `${prompt}, cinematic lighting, hyper-detailed, octane render, 8k resolution --ar 16:9 --v 6.0`,
+      aiModel: aiModel || 'Midjourney v6',
+      suggestedParameters: '--ar 16:9 --v 6.0',
+    };
+  }
+}
