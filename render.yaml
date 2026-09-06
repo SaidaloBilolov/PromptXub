@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: promptxub-backend
+    runtime: docker
+    rootDir: promptxub-backend
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: IMAGEKIT_URL_ENDPOINT
+        value: https://ik.imagekit.io/promptxub
+      - key: IMAGEKIT_PUBLIC_KEY
+        value: public_PHUOaLGx8fOZbLtSqKWIERbPPS0=
+      - key: IMAGEKIT_PRIVATE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: http://localhost:3000,http://localhost:3001,https://promptxub.com,https://admin.promptxub.com

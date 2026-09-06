@@ -95,10 +95,16 @@ docker compose down
 2. Copy `URL-endpoint`, `Public Key`, and `Private Key` from your developer options dashboard.
 
 ### Step C: Backend Deployment (Render.com)
-1. Create a **New Web Service** from your GitHub repo.
-2. Root directory: `promptxub-backend`.
-3. Runtime: **Docker**.
-4. Add environment variables:
+1. Create a **New Web Service** from your GitHub repo (`SaidaloBilolov/PromptXub`).
+2. Configure **Build & Deploy** settings (Choose either Option 1 or Option 2):
+   - **Option 1 (Recommended - Isolated Subdirectory)**:
+     * **Root Directory**: `promptxub-backend`
+     * **Runtime**: `Docker`
+     * **Dockerfile Path**: `Dockerfile`
+     * **Docker Build Context**: `.` (or `promptxub-backend`)
+   - **Option 2 (Zero-Config Root Fallback)**:
+     * Leave **Root Directory** blank (uses root `Dockerfile` and `render.yaml` Blueprint automatically).
+3. Add environment variables in Render Dashboard:
    - `DATABASE_URL`: `jdbc:postgresql://<neon-endpoint>.neon.tech/promptxub_db?sslmode=require`
    - `DATABASE_USERNAME`: `<neon-user>`
    - `DATABASE_PASSWORD`: `<neon-password>`
@@ -107,7 +113,9 @@ docker compose down
    - `IMAGEKIT_PRIVATE_KEY`: `private_KofG/lsYCUr2lqKebYGhGBqxpZo=`
    - `JWT_SECRET`: `<your_jwt_secret>`
    - `CORS_ALLOWED_ORIGINS`: `https://promptxub.com,https://admin.promptxub.com`
-5. Copy your **Deploy Hook URL** from the Render settings.
+4. Copy your **Deploy Hook URL** from the Render settings into your GitHub repository secrets.
+5. To re-trigger an existing deployment:
+   - Go to your Web Service in Render -> Click **Manual Deploy** -> Select **Clear build cache & deploy**.
 
 ### Step D: Frontend Deployments (Vercel / Cloudflare Pages)
 1. **Showcase**: Connect GitHub repo, set root directory to `promptxub-showcase`. Set `NEXT_PUBLIC_API_URL` to your Render backend URL.
