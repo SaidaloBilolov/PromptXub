@@ -1,6 +1,5 @@
 package com.promptxub.backend.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -27,7 +26,9 @@ public class CorsConfig {
         String rawOrigins = env.getProperty("CORS_ALLOWED_ORIGINS");
         if (rawOrigins == null || rawOrigins.isBlank()) {
             rawOrigins = env.getProperty("promptxub.cors.allowed-origins",
-                    "http://localhost:3000,http://localhost:3001,https://promptxub.com,https://admin.promptxub.com");
+                    "http://localhost:3000,http://localhost:3001,http://localhost:5173," +
+                    "https://*.vercel.app,https://*.render.com,https://*.onrender.com," +
+                    "https://promptxub.uz,https://*.promptxub.uz,https://promptxub.com,https://*.promptxub.com");
         }
 
         List<String> origins = Arrays.stream(rawOrigins.split(","))
@@ -38,7 +39,15 @@ public class CorsConfig {
         // AllowedOriginPatterns supports explicit domains and wildcards with credentials enabled
         configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
         configuration.setExposedHeaders(List.of("Authorization", "Link", "X-Total-Count"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
