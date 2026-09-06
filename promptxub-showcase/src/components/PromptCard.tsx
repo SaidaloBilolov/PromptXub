@@ -5,6 +5,7 @@ import { Copy, Check, Video, Eye, Sparkles, Flame } from 'lucide-react';
 import { Prompt } from '@/types';
 import { formatCompactNumber } from '@/lib/utils';
 import { incrementCopyCount } from '@/lib/api';
+import { ShareButton } from './ShareButton';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -95,6 +96,17 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           >
             {prompt.aiModel}
           </span>
+        </div>
+
+        {/* Floating Share Button */}
+        <div className="absolute bottom-3 left-3 z-20">
+          <ShareButton
+            promptId={prompt.id}
+            title={prompt.title}
+            promptText={prompt.promptText}
+            variant="button"
+            onShowToast={onShowToast}
+          />
         </div>
 
         {/* Floating One-Click Copy Button */}

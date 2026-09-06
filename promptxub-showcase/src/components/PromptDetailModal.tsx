@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Copy, Check, ExternalLink, Sparkles, Layers, Sliders, Calendar, Download } from 'lucide-react';
 import { Prompt } from '@/types';
 import { incrementCopyCount } from '@/lib/api';
+import { ShareButton } from './ShareButton';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;
@@ -104,18 +105,28 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           
           {/* Header & Badges */}
           <div>
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800">
-                {prompt.aiModel}
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
-                {prompt.contentType}
-              </span>
-              {prompt.aspectRatio && (
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                  {prompt.aspectRatio}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800">
+                  {prompt.aiModel}
                 </span>
-              )}
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+                  {prompt.contentType}
+                </span>
+                {prompt.aspectRatio && (
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                    {prompt.aspectRatio}
+                  </span>
+                )}
+              </div>
+
+              <ShareButton
+                promptId={prompt.id}
+                title={prompt.title}
+                promptText={prompt.promptText}
+                variant="modal"
+                onShowToast={onShowToast}
+              />
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
           </div>

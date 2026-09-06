@@ -18,6 +18,8 @@ import {
   TrendingUp,
   Loader2,
   ExternalLink,
+  Check,
+  Link2,
 } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -25,6 +27,20 @@ export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const SHOWCASE_PUBLIC_URL = (process.env.NEXT_PUBLIC_SHOWCASE_URL || 'https://promptxub.uz').replace(/\/+$/, '');
+
+  const handleCopyPublicLink = async (promptId: number) => {
+    const publicUrl = `${SHOWCASE_PUBLIC_URL}/prompt/${promptId}`;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopiedId(promptId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy public link', err);
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -149,7 +165,8 @@ export default function DashboardPage() {
                       <th className="pb-3 pl-2">Media & Title</th>
                       <th className="pb-3 px-3">Model</th>
                       <th className="pb-3 px-3">Format</th>
-                      <th className="pb-3 pr-2 text-right">Copies</th>
+                      <th className="pb-3 px-3 text-right">Copies</th>
+                      <th className="pb-3 pr-2 text-right">Public Link</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
@@ -175,8 +192,27 @@ export default function DashboardPage() {
                             {item.contentType === 'VIDEO' ? '🎥 Video' : '📷 Photo'}
                           </span>
                         </td>
-                        <td className="py-3 pr-2 text-right font-bold text-cyan-400">
+                        <td className="py-3 px-3 text-right font-bold text-cyan-400">
                           {item.copyCount.toLocaleString()}
+                        </td>
+                        <td className="py-3 pr-2 text-right">
+                          <button
+                            onClick={() => handleCopyPublicLink(item.id)}
+                            title="Copy Public URL for Instagram/Socials"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-950/70 hover:bg-purple-900/90 text-purple-300 hover:text-white border border-purple-800/60 text-[11px] font-semibold transition active:scale-95 shadow-sm"
+                          >
+                            {copiedId === item.id ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+                                <span className="text-emerald-400">Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Link2 className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Copy Link</span>
+                              </>
+                            )}
+                          </button>
                         </td>
                       </tr>
                     ))}

@@ -176,3 +176,22 @@ export async function incrementCopyCount(promptId: number): Promise<boolean> {
     return false;
   }
 }
+
+export async function fetchPromptById(id: number | string): Promise<Prompt | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/public/prompts/${id}`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      const found = MOCK_PROMPTS.find((p) => p.id.toString() === id.toString());
+      return found || null;
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.warn('API error fetching prompt by id, falling back to mock prompts', err);
+    const found = MOCK_PROMPTS.find((p) => p.id.toString() === id.toString());
+    return found || null;
+  }
+}
