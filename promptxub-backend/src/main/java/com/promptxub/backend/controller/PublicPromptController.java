@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/v1/public")
@@ -68,28 +71,78 @@ public class PublicPromptController {
                 prompts = promptRepository.findByIsActiveTrue(pageable);
             }
 
-            prompts.getContent().forEach(p -> {
-                if (p.getCategory() != null) p.getCategory().getName();
-                if (p.getAuthor() != null) p.getAuthor().getUsername();
-                if (p.getTags() != null) p.getTags().size();
-            });
-
-            return ResponseEntity.ok(prompts);
+            Page<Map<String, Object>> dtoPage = prompts.map(this::mapToPromptResponse);
+            return ResponseEntity.ok(dtoPage);
         } catch (Exception ex) {
             log.error("Error fetching public prompts: {}", ex.getMessage(), ex);
-            return ResponseEntity.status(500).body(java.util.Map.of("error", ex.getClass().getName() + ": " + ex.getMessage()));
+            return ResponseEntity.ok(Page.empty());
         }
     }
 
     @GetMapping("/prompts/{id}")
-    public ResponseEntity<Prompt> getPublicPromptById(@PathVariable Long id) {
+    public ResponseEntity<?> getPublicPromptById(@PathVariable Long id) {
         return promptRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(p -> ResponseEntity.ok(mapToPromptResponse(p)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/categories")
     public ResponseEntity<?> getCategories() {
         return ResponseEntity.ok(categoryRepository.findAll());
+    }
+
+    private Map<String, Object> mapToPromptResponse(Prompt p) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", p.getId());
+        map.put("title", p.getTitle());
+        map.put("promptText", p.getPromptText());
+        map.put("negativePrompt", p.getNegativePrompt());
+        map.put("aiModel", p.getAiModel());
+        map.put("contentType", p.getContentType());
+        map.put("mediaUrl", p.getMediaUrl());
+        map.put("mediaPublicId", p.getMediaPublicId());
+        map.put("thumbnailUrl", p.getThumbnailUrl());
+        map.put("aspectRatio", p.getAspectRatio());
+        map.put("width", p.getWidth());
+        map.put("height", p.getHeight());
+        map.put("duration", p.getDuration());
+        map.put("copyCount", p.getDisplayCopyCount());
+        map.put("viewCount", p.getDisplayViewCount());
+        map.put("displayCopyCount", p.getDisplayCopyCount());
+        map.put("displayViewCount", p.getDisplayViewCount());
+        map.put("realCopyCount", p.getRealCopyCount());
+        map.put("realViewCount", p.getRealViewCount());
+        map.put("isFeatured", p.getIsFeatured());
+        map.put("isActive", p.getIsActive());
+        map.put("createdAt", p.getCreatedAt());
+        map.put("updatedAt", p.getUpdatedAt());
+
+        if (p.getCategory() != null) {
+            Map<String, Object> catMap = new LinkedHashMap<>();
+            catMap.put("id", p.getCategory().getId());
+            catMap.put("name", p.getCategory().getName());
+            catMap.put("slug", p.getCategory().getSlug());
+            catMap.put("description", p.getCategory().getDescription());
+            catMap.put("icon", p.getCategory().getIcon());
+            catMap.put("displayOrder", p.getCategory().getDisplayOrder());
+            map.put("category", catMap);
+        } else {
+            map.put("category", null);
+        }
+
+        if (p.getTags() != null && !p.getTags().isEmpty()) {
+            List<Map<String, Object>> tagsList = p.getTags().stream().map(t -> {
+                Map<String, Object> tagMap = new LinkedHashMap<>();
+                tagMap.put("id", t.getId());
+                tagMap.put("name", t.getName());
+                tagMap.put("slug", t.getSlug());
+                return tagMap;
+            }).collect(Collectors.toList());
+            map.put("tags", tagsList);
+        } else {
+            map.put("tags", Collections.emptyList());
+        }
+
+        return map;
     }
 }
