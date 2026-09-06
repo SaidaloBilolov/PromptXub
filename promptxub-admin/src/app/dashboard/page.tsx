@@ -26,6 +26,8 @@ import {
   Users,
   Save,
   X,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -33,6 +35,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   // Edit Prompt Metrics State
@@ -87,21 +90,25 @@ export default function DashboardPage() {
     }
   };
 
+  const loadStats = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchAdminStats();
+      setStats(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Failed to load stats', err);
+      setError('Unable to connect to PostgreSQL database. Please check backend connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated()) {
       router.replace('/login');
       return;
-    }
-
-    async function loadStats() {
-      try {
-        const data = await fetchAdminStats();
-        setStats(data);
-      } catch (err) {
-        console.error('Failed to load stats', err);
-      } finally {
-        setLoading(false);
-      }
     }
 
     loadStats();
@@ -111,6 +118,35 @@ export default function DashboardPage() {
   }, [router]);
 
   if (loading || !stats) {
+    if (error) {
+      return (
+        <div className="min-h-screen bg-[#0F172A] flex text-slate-100">
+          <AdminSidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <AdminNavbar title="Platform Analytics Overview" subtitle="Database Connection Offline" />
+            <main className="p-8 flex-1 flex flex-col items-center justify-center">
+              <div className="max-w-md w-full p-8 rounded-3xl bg-rose-950/40 border border-rose-800/60 shadow-2xl text-center space-y-4">
+                <div className="inline-flex p-4 rounded-2xl bg-rose-900/60 text-rose-400 border border-rose-700/50">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Database Connection Failed</h2>
+                <p className="text-sm text-rose-200/90 leading-relaxed">
+                  Unable to connect to PostgreSQL database. Please check backend connection.
+                </p>
+                <button
+                  onClick={loadStats}
+                  className="mt-4 px-6 py-3 rounded-xl font-bold text-sm bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center gap-2 transition shadow-lg shadow-rose-600/30 active:scale-95 w-full cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Retry Connection</span>
+                </button>
+              </div>
+            </main>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#0F172A] flex text-slate-100">
         <AdminSidebar />

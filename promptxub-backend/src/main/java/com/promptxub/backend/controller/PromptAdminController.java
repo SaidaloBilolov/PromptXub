@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/v1")
 public class PromptAdminController {
@@ -55,18 +56,32 @@ public class PromptAdminController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<AdminRealSummaryResponse> getRealSummaryAnalytics() {
         Long totalPrompts = promptRepository.count();
+        totalPrompts = (totalPrompts != null) ? totalPrompts : 0L;
+
         Long totalRealViews = promptRepository.getTotalRealViewCount();
+        totalRealViews = (totalRealViews != null) ? totalRealViews : 0L;
+
         Long totalRealCopies = promptRepository.getTotalRealCopyCount();
+        totalRealCopies = (totalRealCopies != null) ? totalRealCopies : 0L;
+
         Long totalDisplayViews = promptRepository.getTotalViewCount();
+        totalDisplayViews = (totalDisplayViews != null) ? totalDisplayViews : 0L;
+
         Long totalDisplayCopies = promptRepository.getTotalCopyCount();
+        totalDisplayCopies = (totalDisplayCopies != null) ? totalDisplayCopies : 0L;
 
         Double realConversionRatio = (totalRealViews > 0)
                 ? Math.round(((double) totalRealCopies / totalRealViews * 100.0) * 10.0) / 10.0
                 : 0.0;
 
         Long totalPhotos = promptRepository.countByContentType(ContentType.PHOTO);
+        totalPhotos = (totalPhotos != null) ? totalPhotos : 0L;
+
         Long totalVideos = promptRepository.countByContentType(ContentType.VIDEO);
+        totalVideos = (totalVideos != null) ? totalVideos : 0L;
+
         Long totalSearches = searchLogRepository.count();
+        totalSearches = (totalSearches != null) ? totalSearches : 0L;
 
         // User Auth Breakdown
         long totalUsers = userRepository.count();
@@ -78,24 +93,35 @@ public class PromptAdminController {
         // Model Conversion Stats from DB
         List<Object[]> modelStatsRaw = promptRepository.getModelRealConversionStats();
         List<AdminRealSummaryResponse.ModelConversionStat> topConvertingModels = new ArrayList<>();
-        for (Object[] row : modelStatsRaw) {
-            String modelName = (String) row[0];
-            Long rCopies = (Long) row[1];
-            Long rViews = (Long) row[2];
-            Double convRate = (rViews > 0)
-                    ? Math.round(((double) rCopies / rViews * 100.0) * 10.0) / 10.0
-                    : 0.0;
-            topConvertingModels.add(new AdminRealSummaryResponse.ModelConversionStat(modelName, rCopies, rViews, convRate));
+        if (modelStatsRaw != null) {
+            for (Object[] row : modelStatsRaw) {
+                if (row == null || row.length < 3) continue;
+                String modelName = row[0] != null ? row[0].toString() : "Unknown";
+                Long rCopies = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+                Long rViews = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+                Double convRate = (rViews > 0)
+                        ? Math.round(((double) rCopies / rViews * 100.0) * 10.0) / 10.0
+                        : 0.0;
+                topConvertingModels.add(new AdminRealSummaryResponse.ModelConversionStat(modelName, rCopies, rViews, convRate));
+            }
         }
 
         // Top Copied Prompts
         List<Prompt> topCopiedPrompts = promptRepository.findTop10ByIsActiveTrueOrderByDisplayCopyCountDesc();
+        if (topCopiedPrompts == null) {
+            topCopiedPrompts = new ArrayList<>();
+        }
 
         // Popular Search Queries
         List<Object[]> popularQueriesRaw = searchLogRepository.findPopularSearchQueries(PageRequest.of(0, 5));
         List<AdminRealSummaryResponse.QueryHitStat> popularQueries = new ArrayList<>();
-        for (Object[] row : popularQueriesRaw) {
-            popularQueries.add(new AdminRealSummaryResponse.QueryHitStat((String) row[0], (Long) row[1]));
+        if (popularQueriesRaw != null) {
+            for (Object[] row : popularQueriesRaw) {
+                if (row == null || row.length < 2) continue;
+                String query = row[0] != null ? row[0].toString() : "";
+                Long count = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+                popularQueries.add(new AdminRealSummaryResponse.QueryHitStat(query, count));
+            }
         }
 
         AdminRealSummaryResponse response = new AdminRealSummaryResponse(

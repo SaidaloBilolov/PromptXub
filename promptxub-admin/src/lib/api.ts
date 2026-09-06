@@ -34,49 +34,62 @@ export async function loginAdmin(username: string, password: string) {
 
 export async function fetchAdminStats(): Promise<AdminStats> {
   const token = getAuthToken();
-  const res = await fetch(`${API_BASE_URL}/admin/analytics/real-summary`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: 'no-store',
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch real database analytics: ${res.status}`);
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/analytics/real-summary`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch real database analytics: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    return {
+      totalPrompts: data.totalPrompts || 0,
+      totalCopies: data.totalDisplayCopies || data.totalCopies || 0,
+      totalViews: data.totalDisplayViews || data.totalViews || 0,
+      totalRealCopies: data.totalRealCopies || 0,
+      totalRealViews: data.totalRealViews || 0,
+      realConversionRatio: data.realConversionRatio || 0,
+      totalPhotos: data.totalPhotos || 0,
+      totalVideos: data.totalVideos || 0,
+      totalSearches: data.totalSearches || 0,
+      topCopiedPrompts: (data.topCopiedPrompts || []).map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        aiModel: p.aiModel,
+        contentType: p.contentType,
+        copyCount: p.displayCopyCount || p.copyCount || 0,
+        viewCount: p.displayViewCount || p.viewCount || 0,
+        realCopyCount: p.realCopyCount || 0,
+        realViewCount: p.realViewCount || 0,
+        conversionRate: p.conversionRate || (p.realViewCount > 0 ? Number(((p.realCopyCount / p.realViewCount) * 100).toFixed(1)) : 0),
+        mediaUrl: p.mediaUrl,
+      })),
+      popularQueries: (data.popularQueries || []).map((q: any) => ({
+        query: q.query || q[0],
+        count: q.count || q[1] || 0,
+      })),
+      topConvertingModels: data.topConvertingModels || [],
+      peakActivityTimes: data.peakActivityTimes || [],
+      deviceDistribution: data.deviceDistribution || [],
+    };
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Connection timed out after 5 seconds');
+    }
+    throw err;
   }
-
-  const data = await res.json();
-
-  return {
-    totalPrompts: data.totalPrompts || 0,
-    totalCopies: data.totalDisplayCopies || data.totalCopies || 0,
-    totalViews: data.totalDisplayViews || data.totalViews || 0,
-    totalRealCopies: data.totalRealCopies || 0,
-    totalRealViews: data.totalRealViews || 0,
-    realConversionRatio: data.realConversionRatio || 0,
-    totalPhotos: data.totalPhotos || 0,
-    totalVideos: data.totalVideos || 0,
-    totalSearches: data.totalSearches || 0,
-    topCopiedPrompts: (data.topCopiedPrompts || []).map((p: any) => ({
-      id: p.id,
-      title: p.title,
-      aiModel: p.aiModel,
-      contentType: p.contentType,
-      copyCount: p.displayCopyCount || p.copyCount || 0,
-      viewCount: p.displayViewCount || p.viewCount || 0,
-      realCopyCount: p.realCopyCount || 0,
-      realViewCount: p.realViewCount || 0,
-      conversionRate: p.conversionRate || (p.realViewCount > 0 ? Number(((p.realCopyCount / p.realViewCount) * 100).toFixed(1)) : 0),
-      mediaUrl: p.mediaUrl,
-    })),
-    popularQueries: (data.popularQueries || []).map((q: any) => ({
-      query: q.query || q[0],
-      count: q.count || q[1] || 0,
-    })),
-    topConvertingModels: data.topConvertingModels || [],
-    peakActivityTimes: data.peakActivityTimes || [],
-    deviceDistribution: data.deviceDistribution || [],
-  };
 }
 
 export async function createPromptWithMedia(formData: FormData) {
