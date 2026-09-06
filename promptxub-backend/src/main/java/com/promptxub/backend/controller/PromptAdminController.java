@@ -102,10 +102,14 @@ public class PromptAdminController {
             } catch (Exception ignored) {
             }
 
-            List<Prompt> topCopiedPrompts = new ArrayList<>();
+            List<Map<String, Object>> topCopiedPromptsMapped = new ArrayList<>();
             try {
                 List<Prompt> rawTop = promptRepository.findTop10ByIsActiveTrueOrderByDisplayCopyCountDesc();
-                if (rawTop != null) topCopiedPrompts = rawTop;
+                if (rawTop != null) {
+                    for (Prompt p : rawTop) {
+                        topCopiedPromptsMapped.add(mapToPromptResponse(p));
+                    }
+                }
             } catch (Exception ignored) {
             }
 
@@ -135,7 +139,7 @@ public class PromptAdminController {
                     totalSearches,
                     userAuthBreakdown,
                     topConvertingModels,
-                    topCopiedPrompts,
+                    topCopiedPromptsMapped,
                     popularQueries
             );
 
@@ -178,16 +182,17 @@ public class PromptAdminController {
      * Admin endpoint to get all prompts for admin panel.
      */
     @GetMapping("/admin/prompts")
-    public ResponseEntity<List<Prompt>> getAllPrompts() {
+    public ResponseEntity<?> getAllPrompts() {
         List<Prompt> prompts = promptService.getAllPromptsForAdmin();
-        return ResponseEntity.ok(prompts);
+        List<Map<String, Object>> dtos = prompts.stream().map(this::mapToPromptResponse).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     /**
      * Admin endpoint to create new prompt with media file.
      */
     @PostMapping(value = "/admin/prompts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Prompt> createPrompt(
+    public ResponseEntity<?> createPrompt(
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("promptText") String promptText,
@@ -204,17 +209,72 @@ public class PromptAdminController {
                 contentType, aspectRatio, categorySlug, tags,
                 displayCopyCount, displayViewCount
         );
-        return ResponseEntity.ok(prompt);
+        return ResponseEntity.ok(mapToPromptResponse(prompt));
     }
 
     /**
      * Admin endpoint to update prompt details including viewCount and copyCount.
      */
     @PutMapping("/admin/prompts/{id}")
-    public ResponseEntity<Prompt> updatePrompt(
+    public ResponseEntity<?> updatePrompt(
             @PathVariable Long id,
             @RequestBody PromptUpdateRequest request) {
         Prompt updated = promptService.updatePromptMetrics(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(mapToPromptResponse(updated));
+    }
+
+    private Map<String, Object> mapToPromptResponse(Prompt p) {
+        Map<String, Object> map = new java.util.LinkedHashMap<>();
+        map.put("id", p.getId());
+        map.put("title", p.getTitle());
+        map.put("promptText", p.getPromptText());
+        map.put("negativePrompt", p.getNegativePrompt());
+        map.put("aiModel", p.getAiModel());
+        map.put("contentType", p.getContentType());
+        map.put("mediaUrl", p.getMediaUrl());
+        map.put("mediaPublicId", p.getMediaPublicId());
+        map.put("thumbnailUrl", p.getThumbnailUrl());
+        map.put("aspectRatio", p.getAspectRatio());
+        map.put("width", p.getWidth());
+        map.put("height", p.getHeight());
+        map.put("duration", p.getDuration());
+        map.put("copyCount", p.getDisplayCopyCount());
+        map.put("viewCount", p.getDisplayViewCount());
+        map.put("displayCopyCount", p.getDisplayCopyCount());
+        map.put("displayViewCount", p.getDisplayViewCount());
+        map.put("realCopyCount", p.getRealCopyCount());
+        map.put("realViewCount", p.getRealViewCount());
+        map.put("isFeatured", p.getIsFeatured());
+        map.put("isActive", p.getIsActive());
+        map.put("createdAt", p.getCreatedAt());
+        map.put("updatedAt", p.getUpdatedAt());
+
+        if (p.getCategory() != null) {
+            Map<String, Object> catMap = new java.util.LinkedHashMap<>();
+            catMap.put("id", p.getCategory().getId());
+            catMap.put("name", p.getCategory().getName());
+            catMap.put("slug", p.getCategory().getSlug());
+            catMap.put("description", p.getCategory().getDescription());
+            catMap.put("icon", p.getCategory().getIcon());
+            catMap.put("displayOrder", p.getCategory().getDisplayOrder());
+            map.put("category", catMap);
+        } else {
+            map.put("category", null);
+        }
+
+        if (p.getTags() != null && !p.getTags().isEmpty()) {
+            List<Map<String, Object>> tagsList = p.getTags().stream().map(t -> {
+                Map<String, Object> tagMap = new java.util.LinkedHashMap<>();
+                tagMap.put("id", t.getId());
+                tagMap.put("name", t.getName());
+                tagMap.put("slug", t.getSlug());
+                return tagMap;
+            }).collect(java.util.stream.Collectors.toList());
+            map.put("tags", tagsList);
+        } else {
+            map.put("tags", java.util.Collections.emptyList());
+        }
+
+        return map;
     }
 }

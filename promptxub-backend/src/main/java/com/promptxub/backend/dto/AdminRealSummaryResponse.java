@@ -16,7 +16,7 @@ public class AdminRealSummaryResponse {
     private Long totalSearches;
     private Map<String, Long> userAuthBreakdown;
     private List<ModelConversionStat> topConvertingModels;
-    private List<Prompt> topCopiedPrompts;
+    private List<Map<String, Object>> topCopiedPrompts;
     private List<QueryHitStat> popularQueries;
 
     public AdminRealSummaryResponse() {
@@ -26,7 +26,7 @@ public class AdminRealSummaryResponse {
                                     Long totalDisplayViews, Long totalDisplayCopies, Double realConversionRatio,
                                     Long totalPhotos, Long totalVideos, Long totalSearches,
                                     Map<String, Long> userAuthBreakdown, List<ModelConversionStat> topConvertingModels,
-                                    List<Prompt> topCopiedPrompts, List<QueryHitStat> popularQueries) {
+                                    List<Map<String, Object>> topCopiedPrompts, List<QueryHitStat> popularQueries) {
         this.totalPrompts = totalPrompts;
         this.totalRealViews = totalRealViews;
         this.totalRealCopies = totalRealCopies;
@@ -130,11 +130,11 @@ public class AdminRealSummaryResponse {
         this.topConvertingModels = topConvertingModels;
     }
 
-    public List<Prompt> getTopCopiedPrompts() {
+    public List<Map<String, Object>> getTopCopiedPrompts() {
         return topCopiedPrompts;
     }
 
-    public void setTopCopiedPrompts(List<Prompt> topCopiedPrompts) {
+    public void setTopCopiedPrompts(List<Map<String, Object>> topCopiedPrompts) {
         this.topCopiedPrompts = topCopiedPrompts;
     }
 
