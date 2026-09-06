@@ -75,7 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/health", "/health").permitAll()
 
                         // Authentication endpoints
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/api/auth/**", "/auth/**").permitAll()
 
                         // Public API routes (Showcase Website & Public consumers)
                         .requestMatchers("/api/v1/public/**").permitAll()
