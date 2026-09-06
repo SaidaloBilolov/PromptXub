@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { AdminNavbar } from '@/components/AdminNavbar';
+import { AnalyticsChart } from '@/components/AnalyticsChart';
 import { AdminStats } from '@/types';
 import { fetchAdminStats, updatePromptMetrics } from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
@@ -128,6 +129,9 @@ export default function DashboardPage() {
 
         <main className="p-8 space-y-8 flex-1 overflow-y-auto">
           
+          {/* Daily Time-Series Analytics Line Chart with Date Picker */}
+          <AnalyticsChart />
+
           {/* Top 4 Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Total Prompts */}

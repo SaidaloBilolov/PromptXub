@@ -72,3 +72,10 @@ export interface UserStats {
   newUsersToday: number;
   usersList: UserSummary[];
 }
+
+export interface DailyAnalyticsPoint {
+  date: string;
+  viewsCount: number;
+  copiesCount: number;
+  visitorsCount: number;
+}
