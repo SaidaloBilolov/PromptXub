@@ -1,29 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Search, Video, Image as ImageIcon, Layers } from 'lucide-react';
-import { ContentType } from '@/types';
+import { Sparkles, Compass, Flame, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
-interface NavbarProps {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  selectedType: ContentType | 'ALL';
-  onTypeSelect: (type: ContentType | 'ALL') => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({
-  searchQuery,
-  onSearchChange,
-  selectedType,
-  onTypeSelect,
-}) => {
+export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0F172A]/80 backdrop-blur-xl transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         
         {/* Brand Logo */}
-        <div className="flex items-center gap-3 cursor-pointer">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-purple-500/20">
+        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-purple-500/20 group-hover:scale-105 transition">
             <div className="h-full w-full bg-[#0F172A] rounded-2xl flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-cyan-400 animate-pulse" />
             </div>
@@ -34,55 +22,31 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <span className="text-xs text-slate-400 font-medium tracking-wide">AI Media & Prompt Engine</span>
           </div>
+        </Link>
+
+        {/* Center Navigation Links */}
+        <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
+          <Link href="/" className="hover:text-cyan-400 transition flex items-center gap-1.5">
+            <Compass className="w-4 h-4 text-purple-400" />
+            <span>Showcase Feed</span>
+          </Link>
+          <a href="#filter-bar" className="hover:text-cyan-400 transition flex items-center gap-1.5">
+            <Flame className="w-4 h-4 text-orange-400" />
+            <span>Trending Prompts</span>
+          </a>
         </div>
 
-        {/* Global Live Search Input */}
-        <div className="hidden md:flex flex-1 max-w-md mx-4 relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search prompts, styles, Flux.1, Midjourney..."
-            className="w-full bg-slate-900/90 border border-slate-800 rounded-full pl-10 pr-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/80 transition shadow-inner"
-          />
-        </div>
-
-        {/* Media Filter Switcher */}
-        <div className="hidden sm:flex items-center bg-slate-900/90 p-1 rounded-full border border-slate-800/80">
-          <button
-            onClick={() => onTypeSelect('ALL')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-              selectedType === 'ALL'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
+        {/* Action Button */}
+        <div className="flex items-center gap-3">
+          <a
+            href="https://promptxub.onrender.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition flex items-center gap-1.5 shadow-md active:scale-95"
           >
-            <Layers className="w-3.5 h-3.5" />
-            All
-          </button>
-          <button
-            onClick={() => onTypeSelect('PHOTO')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-              selectedType === 'PHOTO'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <ImageIcon className="w-3.5 h-3.5" />
-            Photos
-          </button>
-          <button
-            onClick={() => onTypeSelect('VIDEO')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-              selectedType === 'VIDEO'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Video className="w-3.5 h-3.5" />
-            Videos
-          </button>
+            <span>Admin Portal</span>
+            <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
+          </a>
         </div>
 
       </div>

@@ -62,15 +62,14 @@ export default function ShowcasePage() {
   return (
     <main className="flex-1 flex flex-col min-h-screen">
       {/* Top Navbar */}
-      <Navbar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedType={contentType}
-        onTypeSelect={setContentType}
-      />
+      <Navbar />
 
       {/* Hero Section */}
-      <HeroSection onSelectTag={(tag) => setSearchQuery(tag)} />
+      <HeroSection
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSelectTag={(tag) => setSearchQuery(tag)}
+      />
 
       {/* Dynamic Filter Controls */}
       <FilterBar
