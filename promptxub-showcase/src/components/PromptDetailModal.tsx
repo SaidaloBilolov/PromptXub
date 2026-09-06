@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, ExternalLink, Sparkles, Layers, Sliders, Calendar, Download } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Sliders, Download } from 'lucide-react';
 import { Prompt } from '@/types';
 import { incrementCopyCount } from '@/lib/api';
 import { ShareButton } from './ShareButton';
@@ -19,6 +19,11 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [copiedNegative, setCopiedNegative] = useState(false);
+
+  // Mobile Swipe-down to Dismiss Gesture States
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [touchOffsetY, setTouchOffsetY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,37 +59,78 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
     }
   };
 
+  // Touch handlers for mobile swipe-down to dismiss
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY === null) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - touchStartY;
+
+    if (deltaY > 0) {
+      setTouchOffsetY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (touchOffsetY > 90) {
+      onClose();
+    } else {
+      setTouchOffsetY(0);
+    }
+    setTouchStartY(null);
+    setIsDragging(false);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-black/80 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-8 bg-black/80 backdrop-blur-md animate-fadeIn">
       {/* Click outside to close */}
       <div className="fixed inset-0" onClick={onClose} />
 
-      {/* Modal Container */}
-      <div className="relative w-full max-w-5xl bg-[#0F172A] border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row max-h-[90vh]">
-        
-        {/* Close Button */}
+      {/* Modal Container (Bottom Sheet on Mobile, Centered Modal on Desktop) */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: touchOffsetY > 0 ? `translateY(${touchOffsetY}px)` : undefined,
+          transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0,0,0.2,1)',
+        }}
+        className="relative w-full max-w-5xl bg-[#0F172A] border border-slate-700/80 rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row max-h-[92vh] md:max-h-[90vh]"
+      >
+        {/* Mobile Top Drag Indicator Handle */}
+        <div className="w-full flex justify-center pt-3 pb-1 md:hidden bg-slate-900/60 border-b border-slate-800/60 shrink-0 cursor-grab active:cursor-grabbing">
+          <div className="w-12 h-1.5 bg-slate-600/80 rounded-full" />
+        </div>
+
+        {/* Desktop Top-Right Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 transition"
+          className="hidden md:flex absolute top-4 right-4 z-30 p-2.5 rounded-full bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/80 backdrop-blur-md transition hover:scale-105 active:scale-95"
+          title="Close modal (Esc)"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Left: Media Display (Photo / Video) */}
-        <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[300px] md:min-h-full">
+        <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[260px] sm:min-h-[340px] md:min-h-full shrink-0">
           {prompt.contentType === 'VIDEO' ? (
             <video
               src={prompt.mediaUrl}
               controls
               autoPlay
               loop
-              className="w-full h-full max-h-[60vh] md:max-h-[85vh] object-contain"
+              playsInline
+              className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
             />
           ) : (
             <img
               src={prompt.mediaUrl}
               alt={prompt.title}
-              className="w-full h-full max-h-[60vh] md:max-h-[85vh] object-contain"
+              className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
             />
           )}
 
@@ -93,7 +139,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             href={prompt.mediaUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-4 left-4 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-xs font-semibold text-cyan-300 border border-slate-700 backdrop-blur-md flex items-center gap-1.5 transition"
+            className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-xs font-semibold text-cyan-300 border border-slate-700 backdrop-blur-md flex items-center gap-1.5 transition"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Full Resolution</span>
@@ -101,7 +147,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
         </div>
 
         {/* Right: Details & Prompt Parameters */}
-        <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col overflow-y-auto space-y-6">
+        <div className="w-full md:w-1/2 p-5 sm:p-8 flex flex-col overflow-y-auto space-y-6 flex-1">
           
           {/* Header & Badges */}
           <div>
@@ -128,7 +174,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                 onShowToast={onShowToast}
               />
             </div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
           </div>
 
           {/* Prompt Text Section */}
@@ -210,8 +256,8 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             )}
           </div>
 
-          {/* Bottom Action */}
-          <div className="pt-4">
+          {/* Desktop Bottom Action */}
+          <div className="hidden md:block pt-4">
             <button
               onClick={handleCopyPrompt}
               className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white hover:opacity-95 shadow-xl shadow-purple-600/30 flex items-center justify-center gap-2 transition active:scale-[0.99]"
@@ -221,6 +267,25 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             </button>
           </div>
 
+        </div>
+
+        {/* Mobile Floating Sticky Bottom Close & Action Bar */}
+        <div className="sticky bottom-0 inset-x-0 p-3.5 bg-[#0F172A]/95 backdrop-blur-md border-t border-slate-800/80 md:hidden z-40 flex items-center justify-between gap-3 shrink-0">
+          <button
+            onClick={handleCopyPrompt}
+            className="flex-1 py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 active:scale-95"
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            <span>{copied ? 'Copied!' : 'Copy Prompt'}</span>
+          </button>
+          
+          <button
+            onClick={onClose}
+            className="py-3 px-5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5 active:scale-95 shadow-md shrink-0"
+          >
+            <X className="w-4 h-4" />
+            <span>Close</span>
+          </button>
         </div>
 
       </div>
