@@ -5,7 +5,7 @@ import { X, Copy, Check, Sparkles, Sliders, Download } from 'lucide-react';
 import { Prompt } from '@/types';
 import { incrementCopyCount } from '@/lib/api';
 import { ShareButton } from './ShareButton';
-import { getImageKitWatermarkUrl } from '@/lib/imagekit';
+import { getImageKitWatermarkUrl, getOptimizedMediaUrl } from '@/lib/imagekit';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;

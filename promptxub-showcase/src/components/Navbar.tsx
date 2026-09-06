@@ -1,10 +1,44 @@
 'use client';
 
-import React from 'react';
-import { Sparkles, Compass, Flame, ExternalLink } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Sparkles, Compass, Flame, User, LogIn, LogOut, Bookmark, UserCheck, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
-export const Navbar: React.FC = () => {
+interface UserProfile {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  provider?: string;
+}
+
+interface NavbarProps {
+  user?: UserProfile | null;
+  isAuthenticated?: boolean;
+  onOpenAuth?: () => void;
+  onSignOut?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({
+  user,
+  isAuthenticated = false,
+  onOpenAuth,
+  onSignOut,
+}) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0F172A]/80 backdrop-blur-xl transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
@@ -36,17 +70,84 @@ export const Navbar: React.FC = () => {
           </a>
         </div>
 
-        {/* Action Button */}
+        {/* User Auth Controls */}
         <div className="flex items-center gap-3">
-          <a
-            href="https://promptxub.onrender.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition flex items-center gap-1.5 shadow-md active:scale-95"
-          >
-            <span>Admin Portal</span>
-            <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
-          </a>
+          {isAuthenticated && user ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition text-slate-200 active:scale-95 shadow-md"
+              >
+                {user.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name || 'User Avatar'}
+                    className="w-7 h-7 rounded-full object-cover border border-purple-500/50"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 flex items-center justify-center font-bold text-xs text-white">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                <span className="text-xs font-semibold max-w-[100px] truncate hidden sm:inline-block text-slate-100">
+                  {user.name || 'Creator'}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-[#0F172A] border border-slate-700/90 shadow-2xl p-2 z-50 animate-fadeIn space-y-1">
+                  <div className="px-3 py-2 border-b border-slate-800/80">
+                    <p className="text-xs font-bold text-slate-100 truncate">{user.name || 'Creator'}</p>
+                    <p className="text-[11px] text-slate-400 truncate">{user.email || 'user@promptxub.uz'}</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      if (onOpenAuth) onOpenAuth();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                  >
+                    <Bookmark className="w-4 h-4 text-purple-400" />
+                    <span>Saved Prompts</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                  >
+                    <UserCheck className="w-4 h-4 text-cyan-400" />
+                    <span>Profile & Settings</span>
+                  </button>
+
+                  <div className="border-t border-slate-800/80 pt-1">
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        if (onSignOut) onSignOut();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-400" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 text-white transition flex items-center gap-2 shadow-lg shadow-purple-600/30 active:scale-95 cursor-pointer"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In / Get Started</span>
+            </button>
+          )}
         </div>
 
       </div>

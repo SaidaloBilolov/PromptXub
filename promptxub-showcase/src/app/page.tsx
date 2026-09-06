@@ -13,6 +13,16 @@ import { fetchPrompts } from '@/lib/api';
 import { useAuthTracker } from '@/hooks/useAuthTracker';
 import { Sparkles, Loader2, Frown } from 'lucide-react';
 
+interface UserProfile {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  provider?: string;
+}
+
+const USER_SESSION_KEY = 'promptxub_active_user_session';
+
 export default function ShowcasePage() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +32,29 @@ export default function ShowcasePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModalPrompt, setActiveModalPrompt] = useState<Prompt | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [manualAuthOpen, setManualAuthOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   const {
-    showAuthModal,
+    showAuthModal: softGateAuthModal,
     triggerInteraction,
     dismissAuthModal,
+    isAuthenticated,
     setAuthenticated,
   } = useAuthTracker();
+
+  // Load stored user session on mount
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem(USER_SESSION_KEY);
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+        setAuthenticated(true);
+      }
+    } catch (e) {
+      console.error('Failed to load user session', e);
+    }
+  }, [setAuthenticated]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -74,10 +100,50 @@ export default function ShowcasePage() {
     triggerInteraction(false);
   };
 
+  const handleAuthSuccess = (userData?: UserProfile) => {
+    const activeUser = userData || {
+      id: `usr_${Date.now()}`,
+      name: 'Showcase Creator',
+      email: 'creator@promptxub.uz',
+      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    };
+    setUser(activeUser);
+    setAuthenticated(true);
+    setManualAuthOpen(false);
+    try {
+      localStorage.setItem(USER_SESSION_KEY, JSON.stringify(activeUser));
+    } catch (e) {
+      console.error(e);
+    }
+    showToast(`Welcome back, ${activeUser.name || 'Creator'}! 👋`);
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    setAuthenticated(false);
+    try {
+      localStorage.removeItem(USER_SESSION_KEY);
+    } catch (e) {
+      console.error(e);
+    }
+    showToast('Signed out successfully.');
+  };
+
+  const isModalVisible = manualAuthOpen || softGateAuthModal;
+  const handleCloseModal = () => {
+    setManualAuthOpen(false);
+    dismissAuthModal();
+  };
+
   return (
     <main className="flex-1 flex flex-col min-h-screen">
       {/* Top Navbar */}
-      <Navbar />
+      <Navbar
+        user={user}
+        isAuthenticated={isAuthenticated}
+        onOpenAuth={() => setManualAuthOpen(true)}
+        onSignOut={handleSignOut}
+      />
 
       {/* Hero Section */}
       <HeroSection
@@ -143,11 +209,11 @@ export default function ShowcasePage() {
         onShowToast={showToast}
       />
 
-      {/* Progressive Engagement Soft-Gate Login Modal */}
+      {/* Progressive Engagement Soft-Gate & Manual Auth Login Modal */}
       <AuthModal
-        isOpen={showAuthModal}
-        onClose={dismissAuthModal}
-        onSuccess={() => setAuthenticated(true)}
+        isOpen={isModalVisible}
+        onClose={handleCloseModal}
+        onSuccess={handleAuthSuccess}
       />
 
       {/* Floating Toast Notification */}
