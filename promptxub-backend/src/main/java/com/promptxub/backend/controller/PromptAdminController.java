@@ -48,7 +48,7 @@ public class PromptAdminController {
      * Admin endpoint returning 100% real-time database summary analytics from PostgreSQL with safe fallbacks.
      */
     @GetMapping({"/admin/analytics/real-summary", "/admin/analytics"})
-    public ResponseEntity<AdminRealSummaryResponse> getRealSummaryAnalytics() {
+    public ResponseEntity<?> getRealSummaryAnalytics() {
         try {
             Long totalPrompts = promptRepository.count();
             totalPrompts = (totalPrompts != null) ? totalPrompts : 0L;
@@ -144,12 +144,13 @@ public class PromptAdminController {
             );
 
             return ResponseEntity.ok(response);
-        } catch (Exception ex) {
-            return ResponseEntity.ok(new AdminRealSummaryResponse(
-                    0L, 0L, 0L, 0L, 0L, 0.0, 0L, 0L, 0L,
-                    Map.of("Google", 0L, "Apple", 0L, "Email", 0L),
-                    List.of(), List.of(), List.of()
-            ));
+        } catch (Throwable ex) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            ex.printStackTrace(new java.io.PrintWriter(sw));
+            Map<String, Object> err = new java.util.LinkedHashMap<>();
+            err.put("error", ex.getClass().getName() + ": " + ex.getMessage());
+            err.put("trace", sw.toString());
+            return ResponseEntity.status(500).body(err);
         }
     }
 
