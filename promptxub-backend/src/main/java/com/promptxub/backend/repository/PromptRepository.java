@@ -16,29 +16,29 @@ import java.util.List;
 @Repository
 public interface PromptRepository extends JpaRepository<Prompt, Long>, JpaSpecificationExecutor<Prompt> {
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     Page<Prompt> findByIsActiveTrue(Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     Page<Prompt> findByContentTypeAndIsActiveTrue(ContentType contentType, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     Page<Prompt> findByCategorySlugAndIsActiveTrue(String slug, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     Page<Prompt> findByAiModelIgnoreCaseAndIsActiveTrue(String aiModel, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     Page<Prompt> findByIsFeaturedTrueAndIsActiveTrue(Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     @Query("SELECT p FROM Prompt p WHERE p.isActive = true AND " +
             "(LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             " LOWER(p.promptText) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             " LOWER(p.aiModel) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Prompt> searchPrompts(@Param("query") String query, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "author"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     @Query("SELECT p FROM Prompt p WHERE p.isActive = true AND p.contentType = :contentType AND " +
             "(LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             " LOWER(p.promptText) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
