@@ -105,12 +105,27 @@ export default function DashboardPage() {
     }
 
     loadStats();
+    const interval = setInterval(loadStats, 30000); // 30s auto-refresh
+
+    return () => clearInterval(interval);
   }, [router]);
 
   if (loading || !stats) {
     return (
-      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center text-slate-400">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500 mb-2" />
+      <div className="min-h-screen bg-[#0F172A] flex text-slate-100">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <AdminNavbar title="Platform Analytics Overview" subtitle="Connecting to PostgreSQL database..." />
+          <main className="p-8 space-y-8 flex-1 animate-pulse">
+            <div className="h-48 rounded-3xl bg-slate-900/80 border border-slate-800" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-32 rounded-2xl bg-slate-900/80 border border-slate-800" />
+              ))}
+            </div>
+            <div className="h-64 rounded-3xl bg-slate-900/80 border border-slate-800" />
+          </main>
+        </div>
       </div>
     );
   }
@@ -142,7 +157,7 @@ export default function DashboardPage() {
                   <Layers className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold text-white mb-2">{stats.totalPrompts}</div>
+              <div className="text-3xl font-extrabold text-white mb-2">{stats.totalPrompts.toLocaleString()}</div>
               <div className="flex items-center gap-3 text-xs text-slate-400">
                 <span className="flex items-center gap-1">
                   <ImageIcon className="w-3.5 h-3.5 text-purple-400" /> {stats.totalPhotos} Photos
@@ -154,48 +169,48 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Public Copies vs Real Copies */}
+            {/* Real Copies (Strict DB SUM) */}
             <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl relative overflow-hidden">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Copies</span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Real Copies (DB)</span>
                 <div className="p-2 rounded-xl bg-cyan-950/60 text-cyan-400 border border-cyan-800/40">
                   <Copy className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold text-white mb-2">{stats.totalCopies.toLocaleString()}</div>
+              <div className="text-3xl font-extrabold text-cyan-400 mb-2">{(stats.totalRealCopies || 0).toLocaleString()}</div>
               <div className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Real internal copies:</span>
-                <span className="font-bold text-cyan-400">{(stats.totalRealCopies || 12450).toLocaleString()}</span>
+                <span>Public Display Copies:</span>
+                <span className="font-bold text-slate-300">{stats.totalCopies.toLocaleString()}</span>
               </div>
             </div>
 
-            {/* Public Impressions vs Real Views */}
+            {/* Real Views / Impressions (Strict DB SUM) */}
             <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl relative overflow-hidden">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Impressions / Views</span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Real Views (DB)</span>
                 <div className="p-2 rounded-xl bg-indigo-950/60 text-indigo-400 border border-indigo-800/40">
                   <Sparkles className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold text-white mb-2">{stats.totalViews.toLocaleString()}</div>
+              <div className="text-3xl font-extrabold text-indigo-400 mb-2">{(stats.totalRealViews || 0).toLocaleString()}</div>
               <div className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Real page views:</span>
-                <span className="font-bold text-indigo-400">{(stats.totalRealViews || 49800).toLocaleString()}</span>
+                <span>Public Display Views:</span>
+                <span className="font-bold text-slate-300">{stats.totalViews.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Real Copy-to-View Conversion Ratio */}
             <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl relative overflow-hidden">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Conversion Ratio</span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Real Conv. Ratio</span>
                 <div className="p-2 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
                   <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
               <div className="text-3xl font-extrabold text-emerald-400 mb-2">
-                {stats.realConversionRatio || 25.0}%
+                {stats.realConversionRatio !== undefined ? stats.realConversionRatio.toFixed(1) : '0.0'}%
               </div>
-              <div className="text-xs text-slate-400">Real Copies / Real Views</div>
+              <div className="text-xs text-slate-400">Strict Real Copies / Real Views</div>
             </div>
           </div>
 

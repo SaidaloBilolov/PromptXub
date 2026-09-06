@@ -64,4 +64,8 @@ public interface PromptRepository extends JpaRepository<Prompt, Long>, JpaSpecif
 
     @Query("SELECT COUNT(p) FROM Prompt p WHERE p.contentType = :contentType")
     Long countByContentType(@Param("contentType") ContentType contentType);
+
+    @Query("SELECT p.aiModel, COALESCE(SUM(p.realCopyCount), 0), COALESCE(SUM(p.realViewCount), 0) " +
+           "FROM Prompt p GROUP BY p.aiModel")
+    List<Object[]> getModelRealConversionStats();
 }

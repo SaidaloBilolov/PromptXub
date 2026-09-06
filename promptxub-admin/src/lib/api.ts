@@ -34,107 +34,49 @@ export async function loginAdmin(username: string, password: string) {
 
 export async function fetchAdminStats(): Promise<AdminStats> {
   const token = getAuthToken();
-  try {
-    const res = await fetch(`${API_BASE_URL}/admin/analytics`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  const res = await fetch(`${API_BASE_URL}/admin/analytics/real-summary`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  });
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch stats: ${res.status}`);
-    }
-
-    return await res.json();
-  } catch {
-    // Fallback analytics data for development preview
-    return {
-      totalPrompts: 142,
-      totalCopies: 48920,
-      totalViews: 189400,
-      totalRealCopies: 12450,
-      totalRealViews: 49800,
-      realConversionRatio: 25.0,
-      totalPhotos: 98,
-      totalVideos: 44,
-      totalSearches: 12430,
-      topCopiedPrompts: [
-        {
-          id: 5,
-          title: "Samurai Mecha Warrior in Shinjuku",
-          aiModel: "Midjourney v6",
-          contentType: "PHOTO",
-          copyCount: 3120,
-          viewCount: 9400,
-          realCopyCount: 840,
-          realViewCount: 2950,
-          conversionRate: 28.5,
-          mediaUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=600&auto=format&fit=crop",
-        },
-        {
-          id: 2,
-          title: "Liquid Gold Cheetah Fluid Motion",
-          aiModel: "Runway Gen-3",
-          contentType: "VIDEO",
-          copyCount: 2310,
-          viewCount: 7100,
-          realCopyCount: 620,
-          realViewCount: 2570,
-          conversionRate: 24.1,
-          mediaUrl: "https://res.cloudinary.com/demo/video/upload/q_auto/cld_sample_video.mp4",
-        },
-        {
-          id: 4,
-          title: "Futuristic Solarpunk Floating City",
-          aiModel: "Luma Dream Machine",
-          contentType: "VIDEO",
-          copyCount: 1890,
-          viewCount: 5600,
-          realCopyCount: 480,
-          realViewCount: 2100,
-          conversionRate: 22.8,
-          mediaUrl: "https://res.cloudinary.com/demo/video/upload/q_auto/cld_sample_video.mp4",
-        },
-        {
-          id: 1,
-          title: "Cyberpunk Geisha in Neon Rain",
-          aiModel: "Flux.1 Schnell",
-          contentType: "PHOTO",
-          copyCount: 1420,
-          viewCount: 4300,
-          realCopyCount: 390,
-          realViewCount: 1960,
-          conversionRate: 19.9,
-          mediaUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop",
-        },
-      ],
-      popularQueries: [
-        { query: "Cyberpunk", count: 4210 },
-        { query: "Hyperrealistic Portrait", count: 3410 },
-        { query: "Runway Gen-3 Motion", count: 2890 },
-        { query: "Flux.1 Cinematic", count: 2150 },
-        { query: "Architecture Minimalist", count: 1720 },
-      ],
-      topConvertingModels: [
-        { model: "Midjourney v6", realCopies: 4850, realViews: 17080, conversionRate: 28.4 },
-        { model: "Runway Gen-3", realCopies: 3410, realViews: 14150, conversionRate: 24.1 },
-        { model: "Flux.1 Schnell", realCopies: 2890, realViews: 14590, conversionRate: 19.8 },
-        { model: "Luma Dream Machine", realCopies: 1300, realViews: 3980, conversionRate: 32.6 },
-      ],
-      peakActivityTimes: [
-        { timeSlot: "20:00 - 23:00 (Peak)", activityPercentage: 88, copiesCount: 4120 },
-        { timeSlot: "14:00 - 17:00 (Afternoon)", activityPercentage: 64, copiesCount: 2980 },
-        { timeSlot: "10:00 - 13:00 (Morning)", activityPercentage: 52, copiesCount: 2410 },
-        { timeSlot: "00:00 - 05:00 (Night)", activityPercentage: 24, copiesCount: 1120 },
-      ],
-      deviceDistribution: [
-        { device: "Desktop", os: "macOS / Chrome", percentage: 42, count: 5229 },
-        { device: "Mobile", os: "iOS / Safari", percentage: 35, count: 4357 },
-        { device: "Desktop", os: "Windows / Chrome", percentage: 18, count: 2241 },
-        { device: "Mobile", os: "Android / Chrome", percentage: 5, count: 623 },
-      ],
-    };
+  if (!res.ok) {
+    throw new Error(`Failed to fetch real database analytics: ${res.status}`);
   }
+
+  const data = await res.json();
+
+  return {
+    totalPrompts: data.totalPrompts || 0,
+    totalCopies: data.totalDisplayCopies || data.totalCopies || 0,
+    totalViews: data.totalDisplayViews || data.totalViews || 0,
+    totalRealCopies: data.totalRealCopies || 0,
+    totalRealViews: data.totalRealViews || 0,
+    realConversionRatio: data.realConversionRatio || 0,
+    totalPhotos: data.totalPhotos || 0,
+    totalVideos: data.totalVideos || 0,
+    totalSearches: data.totalSearches || 0,
+    topCopiedPrompts: (data.topCopiedPrompts || []).map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      aiModel: p.aiModel,
+      contentType: p.contentType,
+      copyCount: p.displayCopyCount || p.copyCount || 0,
+      viewCount: p.displayViewCount || p.viewCount || 0,
+      realCopyCount: p.realCopyCount || 0,
+      realViewCount: p.realViewCount || 0,
+      conversionRate: p.conversionRate || (p.realViewCount > 0 ? Number(((p.realCopyCount / p.realViewCount) * 100).toFixed(1)) : 0),
+      mediaUrl: p.mediaUrl,
+    })),
+    popularQueries: (data.popularQueries || []).map((q: any) => ({
+      query: q.query || q[0],
+      count: q.count || q[1] || 0,
+    })),
+    topConvertingModels: data.topConvertingModels || [],
+    peakActivityTimes: data.peakActivityTimes || [],
+    deviceDistribution: data.deviceDistribution || [],
+  };
 }
 
 export async function createPromptWithMedia(formData: FormData) {
