@@ -225,7 +225,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
               </div>
 
               {/* Actions: Share & Desktop Close Button */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-3 shrink-0">
                 <ShareButton
                   promptId={prompt.id}
                   title={prompt.title}

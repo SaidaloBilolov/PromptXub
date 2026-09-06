@@ -13,6 +13,7 @@ export interface AdminStats {
     aiModel: string;
     contentType: ContentType;
     copyCount: number;
+    viewCount?: number;
     mediaUrl: string;
   }[];
   popularQueries: {

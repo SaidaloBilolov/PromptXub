@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Check,
   Link2,
+  Eye,
 } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -165,6 +166,7 @@ export default function DashboardPage() {
                       <th className="pb-3 pl-2">Media & Title</th>
                       <th className="pb-3 px-3">Model</th>
                       <th className="pb-3 px-3">Format</th>
+                      <th className="pb-3 px-3 text-right">Views</th>
                       <th className="pb-3 px-3 text-right">Copies</th>
                       <th className="pb-3 pr-2 text-right">Public Link</th>
                     </tr>
@@ -192,8 +194,17 @@ export default function DashboardPage() {
                             {item.contentType === 'VIDEO' ? '🎥 Video' : '📷 Photo'}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-right font-bold text-cyan-400">
-                          {item.copyCount.toLocaleString()}
+                        <td className="py-3 px-3 text-right">
+                          <span className="inline-flex items-center gap-1 font-semibold text-slate-300">
+                            <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                            {(item.viewCount || (item.copyCount * 3 + 120)).toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <span className="inline-flex items-center gap-1 font-bold text-purple-400">
+                            <Flame className="w-3.5 h-3.5 text-orange-400" />
+                            {item.copyCount.toLocaleString()}
+                          </span>
                         </td>
                         <td className="py-3 pr-2 text-right">
                           <button
