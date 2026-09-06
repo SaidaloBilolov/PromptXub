@@ -1,7 +1,7 @@
 import { AdminStats, UserStats } from '@/types';
 import { getAuthToken } from './auth';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://promptxub.onrender.com/api/v1').replace(/\/+$/, '');
+const API_BASE_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://promptxub.onrender.com/api/v1').replace(/\/+$/, '');
 
 export async function loginAdmin(username: string, password: string) {
   try {
@@ -38,7 +38,8 @@ export async function fetchAdminStats(): Promise<AdminStats> {
   const timeoutId = setTimeout(() => controller.abort(), 5000);
 
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/analytics/real-summary`, {
+    const targetUrl = `${API_BASE_URL}/admin/analytics/real-summary`;
+    const res = await fetch(targetUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -48,7 +49,9 @@ export async function fetchAdminStats(): Promise<AdminStats> {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch real database analytics: ${res.status}`);
+      const errorBody = await res.text().catch(() => '');
+      console.error(`[Admin Analytics API Error] GET ${targetUrl} failed with Status ${res.status} (${res.statusText}). Response Body:`, errorBody);
+      throw new Error(`Failed to fetch real database analytics (${res.status} ${res.statusText}): ${errorBody}`);
     }
 
     const data = await res.json();
@@ -86,8 +89,10 @@ export async function fetchAdminStats(): Promise<AdminStats> {
   } catch (err: any) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
+      console.error(`[Admin Analytics API Timeout] GET ${API_BASE_URL}/admin/analytics/real-summary timed out after 5000ms`);
       throw new Error('Connection timed out after 5 seconds');
     }
+    console.error(`[Admin Analytics Exception] GET ${API_BASE_URL}/admin/analytics/real-summary:`, err);
     throw err;
   }
 }
