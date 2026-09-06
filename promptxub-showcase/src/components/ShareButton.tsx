@@ -25,36 +25,59 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening card modal when clicking share on a card
 
-    const shareUrl = typeof window !== 'undefined'
-      ? `${window.location.origin}/prompt/${promptId}`
-      : `https://promptxub.uz/prompt/${promptId}`;
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://promptxub.uz')).replace(/\/+$/, '');
+    const shareUrl = `${siteUrl}/prompt/${promptId}`;
 
-    // 1. Native Mobile Web Share API if supported
-    if (typeof navigator !== 'undefined' && navigator.share) {
+    let copySuccess = false;
+
+    // 1. Primary Action: Direct Clipboard Copy
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        copySuccess = true;
+      } catch (err) {
+        console.warn('navigator.clipboard.writeText failed, trying fallback copy:', err);
+      }
+    }
+
+    // 2. Fallback Copy using temporary textarea (for legacy or restricted browser environments)
+    if (!copySuccess && typeof document !== 'undefined') {
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareUrl;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.top = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        copySuccess = document.execCommand('copy');
+        document.body.removeChild(textarea);
+      } catch (err) {
+        console.error('Fallback execCommand copy failed:', err);
+      }
+    }
+
+    // 3. Fallback to Web Share API if clipboard access was blocked
+    if (!copySuccess && typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: `PromptXub - ${title}`,
           text: promptText ? `Check out this AI Prompt on PromptXub: "${title}"` : title,
           url: shareUrl,
         });
-        if (onShowToast) onShowToast('Shared successfully!');
-        return;
+        copySuccess = true;
       } catch (err: any) {
-        // If user cancelled native share popup, fallback gracefully to clipboard copy
         if (err.name === 'AbortError') return;
       }
     }
 
-    // 2. Fallback to Clipboard Copy
-    try {
-      await navigator.clipboard.writeText(shareUrl);
+    if (copySuccess) {
       setCopied(true);
       if (onShowToast) {
-        onShowToast('Link copied to clipboard!');
+        onShowToast('Prompt link copied to clipboard!');
       }
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy prompt link', err);
     }
   };
 
@@ -90,7 +113,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
       {copied ? (
         <>
           <Check className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
-          <span>Copied</span>
+          <span>Copied!</span>
         </>
       ) : (
         <>
