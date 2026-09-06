@@ -73,9 +73,14 @@ public class PublicPromptController {
 
             Page<Map<String, Object>> dtoPage = prompts.map(this::mapToPromptResponse);
             return ResponseEntity.ok(dtoPage);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             log.error("Error fetching public prompts: {}", ex.getMessage(), ex);
-            return ResponseEntity.ok(Page.empty());
+            java.io.StringWriter sw = new java.io.StringWriter();
+            ex.printStackTrace(new java.io.PrintWriter(sw));
+            Map<String, Object> err = new LinkedHashMap<>();
+            err.put("error", ex.getClass().getName() + ": " + ex.getMessage());
+            err.put("trace", sw.toString());
+            return ResponseEntity.status(500).body(err);
         }
     }
 
