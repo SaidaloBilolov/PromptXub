@@ -1,7 +1,7 @@
 # ===================================================================
-# STAGE 1: Build the Maven application with Java 21
+# STAGE 1: Build the Maven application with Java 17
 # ===================================================================
-FROM maven:3.9.8-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9.8-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /build
 
@@ -14,9 +14,9 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B
 
 # ===================================================================
-# STAGE 2: Lightweight Production Runtime Container (Java 21 JRE)
+# STAGE 2: Lightweight Production Runtime Container (Java 17 JRE)
 # ===================================================================
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
