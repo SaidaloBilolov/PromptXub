@@ -169,15 +169,6 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           <div className="w-12 h-1.5 bg-slate-600/80 rounded-full" />
         </div>
 
-        {/* Desktop Top-Right Close Button */}
-        <button
-          onClick={onClose}
-          className="hidden md:flex absolute top-4 right-4 z-30 p-2.5 rounded-full bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/80 backdrop-blur-md transition hover:scale-105 active:scale-95"
-          title="Close modal (Esc)"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
         {/* Left: Media Display (Photo / Video) */}
         <div className="w-full md:w-1/2 bg-black flex items-center justify-center relative overflow-hidden min-h-[260px] sm:min-h-[340px] md:min-h-full shrink-0">
           {prompt.contentType === 'VIDEO' ? (
@@ -217,7 +208,8 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           
           {/* Header & Badges */}
           <div>
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800">
                   {prompt.aiModel}
@@ -232,13 +224,23 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                 )}
               </div>
 
-              <ShareButton
-                promptId={prompt.id}
-                title={prompt.title}
-                promptText={customPromptText || prompt.promptText}
-                variant="modal"
-                onShowToast={onShowToast}
-              />
+              {/* Actions: Share & Desktop Close Button */}
+              <div className="flex items-center gap-2 shrink-0">
+                <ShareButton
+                  promptId={prompt.id}
+                  title={prompt.title}
+                  promptText={customPromptText || prompt.promptText}
+                  variant="modal"
+                  onShowToast={onShowToast}
+                />
+                <button
+                  onClick={onClose}
+                  className="hidden md:flex items-center justify-center p-2 rounded-xl bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/80 backdrop-blur-md transition hover:scale-105 active:scale-95"
+                  title="Close modal (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
           </div>
