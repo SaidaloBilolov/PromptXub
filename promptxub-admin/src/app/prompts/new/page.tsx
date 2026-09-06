@@ -35,6 +35,8 @@ export default function NewPromptPage() {
   const [contentType, setContentType] = useState<ContentType>('PHOTO');
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [categorySlug, setCategorySlug] = useState('photorealistic');
+  const [displayViewCount, setDisplayViewCount] = useState<number>(0);
+  const [displayCopyCount, setDisplayCopyCount] = useState<number>(0);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
 
   // Tag Chips
@@ -116,6 +118,8 @@ export default function NewPromptPage() {
       formData.append('aspectRatio', aspectRatio);
       formData.append('categorySlug', categorySlug);
       formData.append('tags', tags.join(','));
+      formData.append('displayViewCount', displayViewCount.toString());
+      formData.append('displayCopyCount', displayCopyCount.toString());
 
       await createPromptWithMedia(formData);
 
@@ -282,6 +286,38 @@ export default function NewPromptPage() {
                   </span>
                   <span className="text-[11px] text-slate-500">(Auto-detected)</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Initial Display Metrics (Boost) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+              <div>
+                <label className="block text-xs font-bold text-cyan-400 mb-1">
+                  Initial Display Views (Public Boost)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={displayViewCount}
+                  onChange={(e) => setDisplayViewCount(parseInt(e.target.value) || 0)}
+                  placeholder="e.g. 5000"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-cyan-500"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">Number of views shown to public users (real views add +1 to this)</span>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-purple-400 mb-1">
+                  Initial Display Copies (Public Boost)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={displayCopyCount}
+                  onChange={(e) => setDisplayCopyCount(parseInt(e.target.value) || 0)}
+                  placeholder="e.g. 1200"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-purple-500"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">Number of copies shown to public users (real copies add +1 to this)</span>
               </div>
             </div>
 

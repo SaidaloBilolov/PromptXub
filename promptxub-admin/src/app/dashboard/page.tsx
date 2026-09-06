@@ -422,9 +422,11 @@ export default function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
                     {stats.topCopiedPrompts.map((item) => {
-                      const realViews = item.realViewCount || Math.round(item.copyCount * 2.8 + 450);
-                      const realCopies = item.realCopyCount || Math.round(item.copyCount * 0.35);
-                      const convRate = item.conversionRate || (realViews > 0 ? ((realCopies / realViews) * 100).toFixed(1) : '0.0');
+                      const realViews = item.realViewCount ?? 0;
+                      const realCopies = item.realCopyCount ?? 0;
+                      const displayViews = item.viewCount ?? 0;
+                      const displayCopies = item.copyCount ?? 0;
+                      const convRate = item.conversionRate !== undefined ? item.conversionRate : (realViews > 0 ? ((realCopies / realViews) * 100).toFixed(1) : '0.0');
 
                       return (
                         <tr key={item.id} className="hover:bg-slate-800/40 transition">
@@ -444,7 +446,7 @@ export default function DashboardPage() {
                             </span>
                           </td>
 
-                          {/* REAL STATS (Admin Only) */}
+                          {/* REAL STATS (Internal DB) */}
                           <td className="py-3 px-2 text-center">
                             <div className="inline-flex flex-col items-center">
                               <span className="text-[11px] font-bold text-cyan-400 flex items-center gap-1">
@@ -460,10 +462,10 @@ export default function DashboardPage() {
                           <td className="py-3 px-2 text-center">
                             <div className="inline-flex flex-col items-center">
                               <span className="text-[11px] font-medium text-slate-300">
-                                View: {(item.viewCount || (item.copyCount * 3 + 120)).toLocaleString()}
+                                View: {displayViews.toLocaleString()}
                               </span>
                               <span className="text-[11px] font-bold text-purple-300">
-                                Copy: {item.copyCount.toLocaleString()}
+                                Copy: {displayCopies.toLocaleString()}
                               </span>
                             </div>
                           </td>
@@ -483,8 +485,8 @@ export default function DashboardPage() {
                                   setEditingPrompt({
                                     id: item.id,
                                     title: item.title,
-                                    viewCount: item.viewCount || (item.copyCount * 3 + 120),
-                                    copyCount: item.copyCount,
+                                    viewCount: displayViews,
+                                    copyCount: displayCopies,
                                   })
                                 }
                                 title="Edit Public Display Metrics"
