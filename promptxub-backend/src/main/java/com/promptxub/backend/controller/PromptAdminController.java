@@ -224,6 +224,15 @@ public class PromptAdminController {
         return ResponseEntity.ok(mapToPromptResponse(updated));
     }
 
+    /**
+     * Admin endpoint to delete a prompt by ID.
+     */
+    @DeleteMapping("/admin/prompts/{id}")
+    public ResponseEntity<?> deletePrompt(@PathVariable Long id) {
+        promptRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Prompt deleted successfully", "deletedId", id));
+    }
+
     private Map<String, Object> mapToPromptResponse(Prompt p) {
         Map<String, Object> map = new java.util.LinkedHashMap<>();
         map.put("id", p.getId());

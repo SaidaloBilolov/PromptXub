@@ -1,13 +1,14 @@
 package com.promptxub.backend.controller;
 
-import com.promptxub.backend.repository.PromptRepository;
-import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/v1")
+@Transactional
 public class PromptTrackController {
 
     private final PromptRepository promptRepository;
