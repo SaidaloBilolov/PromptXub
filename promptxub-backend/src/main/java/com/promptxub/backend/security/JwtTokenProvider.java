@@ -59,22 +59,41 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    private String sanitizeToken(String token) {
+        if (!org.springframework.util.StringUtils.hasText(token)) {
+            return null;
+        }
+        String sanitized = token.trim();
+        if (sanitized.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            sanitized = sanitized.substring(7).trim();
+        }
+        if (sanitized.startsWith("\"") && sanitized.endsWith("\"") && sanitized.length() > 1) {
+            sanitized = sanitized.substring(1, sanitized.length() - 1).trim();
+        }
+        return sanitized.isEmpty() ? null : sanitized;
+    }
+
     public String getUsernameFromJWT(String token) {
+        String cleanToken = sanitizeToken(token);
         Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(cleanToken)
                 .getPayload();
 
         return claims.getSubject();
     }
 
     public boolean validateToken(String authToken) {
+        String cleanToken = sanitizeToken(authToken);
+        if (cleanToken == null) {
+            return false;
+        }
         try {
             Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(authToken);
+                    .parseSignedClaims(cleanToken);
             return true;
         } catch (SecurityException | MalformedJwtException ex) {
             log.error("Invalid or manipulated JWT token: {}", ex.getMessage());
