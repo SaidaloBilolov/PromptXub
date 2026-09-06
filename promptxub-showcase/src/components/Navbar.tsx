@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Search, Video, Image as ImageIcon, Layers, ExternalLink } from 'lucide-react';
+import { Sparkles, Search, Video, Image as ImageIcon, Layers } from 'lucide-react';
 import { ContentType } from '@/types';
 
 interface NavbarProps {
@@ -31,7 +31,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
               <span className="text-2xl font-black tracking-tight text-white">Prompt<span className="text-cyan-400">Xub</span></span>
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-800/50">PRO</span>
             </div>
             <span className="text-xs text-slate-400 font-medium tracking-wide">AI Media & Prompt Engine</span>
           </div>
@@ -84,19 +83,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Video className="w-3.5 h-3.5" />
             Videos
           </button>
-        </div>
-
-        {/* Dedicated Admin / Action button */}
-        <div className="flex items-center gap-3">
-          <a
-            href="http://localhost:3001/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-600/20 transition hover:scale-105 active:scale-95"
-          >
-            <span>Admin Portal</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
         </div>
 
       </div>
