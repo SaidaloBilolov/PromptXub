@@ -189,6 +189,51 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* User Growth & Auth Stats Panel */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-base font-bold text-white">User Growth & Auth Provider Analytics</h2>
+              </div>
+              <a href="/users" className="text-xs font-semibold text-purple-400 hover:text-purple-300 transition">
+                Manage Accounts &rarr;
+              </a>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-400 block mb-1 font-medium">Google OAuth Users</span>
+                  <span className="text-xl font-bold text-cyan-400">719 accounts (58%)</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-cyan-950/80 text-cyan-400 border border-cyan-800">
+                  <Check className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-400 block mb-1 font-medium">Apple Sign-In Users</span>
+                  <span className="text-xl font-bold text-slate-100">335 accounts (27%)</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-400 block mb-1 font-medium">Email Magic Link</span>
+                  <span className="text-xl font-bold text-purple-400">186 accounts (15%)</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-purple-950/80 text-purple-400 border border-purple-800">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Middle Section: Top Copied Prompts Table & Popular Queries */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             

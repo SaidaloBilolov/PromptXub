@@ -22,14 +22,22 @@ export interface AdminStats {
   }[];
 }
 
-export interface PromptFormData {
-  title: string;
-  promptText: string;
-  negativePrompt?: string;
-  aiModel: string;
-  contentType: ContentType;
-  aspectRatio: string;
-  categorySlug: string;
-  tags: string[];
-  mediaFile?: File;
+export interface UserSummary {
+  id: number;
+  name: string;
+  email: string;
+  provider: 'Google' | 'Apple' | 'Email';
+  avatarUrl?: string;
+  joinedDate: string;
+  savedPromptsCount: number;
+  enabled: boolean;
+}
+
+export interface UserStats {
+  totalUsers: number;
+  googleUsersCount: number;
+  appleUsersCount: number;
+  emailUsersCount: number;
+  newUsersToday: number;
+  usersList: UserSummary[];
 }

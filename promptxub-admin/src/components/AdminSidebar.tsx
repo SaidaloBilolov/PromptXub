@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, Sparkles, LogOut, Layers, ExternalLink, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, Sparkles, LogOut, Layers, ExternalLink, ShieldAlert } from 'lucide-react';
 import { clearAuthSession, getCurrentUser } from '@/lib/auth';
 
 export const AdminSidebar: React.FC = () => {
@@ -18,6 +18,7 @@ export const AdminSidebar: React.FC = () => {
 
   const navItems = [
     { label: 'Analytics Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'User Accounts', href: '/users', icon: Users },
     { label: 'Upload New Prompt', href: '/prompts/new', icon: PlusCircle },
   ];
 
