@@ -166,10 +166,7 @@ public class PromptAdminController {
             list = new ArrayList<>();
             LocalDate cur = start;
             while (!cur.isAfter(end)) {
-                long views = 450 + (long) (Math.sin(cur.getDayOfMonth()) * 200 + (cur.getDayOfWeek().getValue() * 30));
-                long copies = (long) (views * 0.25 + (cur.getDayOfMonth() % 5) * 15);
-                long visitors = (long) (views * 0.7);
-                list.add(new DailyAnalytics(cur, views, copies, visitors));
+                list.add(new DailyAnalytics(cur, 0L, 0L, 0L));
                 cur = cur.plusDays(1);
             }
         }
