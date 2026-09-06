@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping("/api/v1/public")
-@Transactional(readOnly = true)
 public class PublicPromptController {
 
     private static final Logger log = LoggerFactory.getLogger(PublicPromptController.class);
