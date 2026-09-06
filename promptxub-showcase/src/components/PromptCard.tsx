@@ -20,7 +20,6 @@ export const PromptCard: React.FC<PromptCardProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [localCopies, setLocalCopies] = useState(prompt.copyCount);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // prevent modal opening
@@ -57,19 +56,17 @@ export const PromptCard: React.FC<PromptCardProps> = ({
       className="group relative rounded-2xl overflow-hidden bg-slate-900/70 border border-slate-800/80 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-900/20 flex flex-col cursor-pointer"
     >
       {/* Media Container */}
-      <div
-        className="relative w-full overflow-hidden bg-slate-950 aspect-[4/3] sm:aspect-square"
-        onMouseEnter={() => prompt.contentType === 'VIDEO' && setIsVideoPlaying(true)}
-        onMouseLeave={() => prompt.contentType === 'VIDEO' && setIsVideoPlaying(false)}
-      >
+      <div className="relative w-full overflow-hidden bg-slate-950 aspect-[4/3] sm:aspect-square">
         {prompt.contentType === 'VIDEO' ? (
           <div className="w-full h-full relative">
             <video
               src={prompt.mediaUrl}
+              poster={prompt.thumbnailUrl}
+              autoPlay
               muted
               loop
               playsInline
-              autoPlay={isVideoPlaying}
+              preload="metadata"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {/* Video Indicator */}

@@ -124,10 +124,13 @@ export default async function PromptDetailPage({ params }: PageProps) {
             {prompt.contentType === 'VIDEO' ? (
               <video
                 src={prompt.mediaUrl}
+                poster={prompt.thumbnailUrl}
                 controls
                 autoPlay
+                muted
                 loop
                 playsInline
+                preload="metadata"
                 className="w-full h-full max-h-[75vh] object-contain"
               />
             ) : (

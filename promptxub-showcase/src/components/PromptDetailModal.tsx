@@ -120,10 +120,13 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           {prompt.contentType === 'VIDEO' ? (
             <video
               src={prompt.mediaUrl}
+              poster={prompt.thumbnailUrl}
               controls
               autoPlay
+              muted
               loop
               playsInline
+              preload="metadata"
               className="w-full h-full max-h-[50vh] md:max-h-[85vh] object-contain"
             />
           ) : (
