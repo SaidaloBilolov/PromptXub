@@ -190,9 +190,8 @@ public class PromptAdminController {
     }
 
     /**
-     * Admin endpoint to create new prompt with media file.
+     * Admin endpoint to create new prompt with media file (multipart).
      */
-    @org.springframework.transaction.annotation.Transactional
     @PostMapping(value = "/admin/prompts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPrompt(
             @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file,
@@ -214,11 +213,25 @@ public class PromptAdminController {
             );
             return ResponseEntity.ok(mapToPromptResponse(prompt));
         } catch (Throwable ex) {
-            java.io.StringWriter sw = new java.io.StringWriter();
-            ex.printStackTrace(new java.io.PrintWriter(sw));
+            log.error("Error creating prompt via multipart: {}", ex.getMessage(), ex);
             Map<String, Object> err = new java.util.LinkedHashMap<>();
             err.put("error", ex.getClass().getName() + ": " + ex.getMessage());
-            err.put("trace", sw.toString());
+            return ResponseEntity.status(500).body(err);
+        }
+    }
+
+    /**
+     * Admin endpoint to create new prompt with JSON payload (fallback).
+     */
+    @PostMapping(value = "/admin/prompts/json", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createPromptJson(@RequestBody com.promptxub.backend.dto.PromptUpdateRequest request) {
+        try {
+            Prompt prompt = promptService.createPromptFromJson(request);
+            return ResponseEntity.ok(mapToPromptResponse(prompt));
+        } catch (Throwable ex) {
+            log.error("Error creating prompt via JSON: {}", ex.getMessage(), ex);
+            Map<String, Object> err = new java.util.LinkedHashMap<>();
+            err.put("error", ex.getClass().getName() + ": " + ex.getMessage());
             return ResponseEntity.status(500).body(err);
         }
     }

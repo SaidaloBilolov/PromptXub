@@ -138,6 +138,51 @@ public class PromptService {
     }
 
     @Transactional
+    public Prompt createPromptFromJson(PromptUpdateRequest request) {
+        String title = (request.getTitle() != null && !request.getTitle().isBlank()) ? request.getTitle() : "Untitled AI Prompt";
+        String promptText = (request.getPromptText() != null && !request.getPromptText().isBlank()) ? request.getPromptText() : title;
+        String aiModel = (request.getAiModel() != null && !request.getAiModel().isBlank()) ? request.getAiModel() : "Midjourney v6";
+
+        ContentType type = ContentType.PHOTO;
+        if (request.getContentType() != null && request.getContentType().equalsIgnoreCase("VIDEO")) {
+            type = ContentType.VIDEO;
+        }
+
+        String mediaUrl = (request.getMediaUrl() != null && !request.getMediaUrl().isBlank())
+                ? request.getMediaUrl()
+                : "https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop";
+
+        Category category = null;
+        if (request.getCategorySlug() != null && !request.getCategorySlug().isBlank()) {
+            category = categoryRepository.findBySlug(request.getCategorySlug()).orElse(null);
+        }
+        if (category == null) {
+            category = categoryRepository.findAll().stream().findFirst().orElse(null);
+        }
+
+        Prompt prompt = Prompt.builder()
+                .title(title)
+                .promptText(promptText)
+                .negativePrompt(request.getNegativePrompt())
+                .aiModel(aiModel)
+                .contentType(type)
+                .mediaUrl(mediaUrl)
+                .aspectRatio(request.getAspectRatio() != null ? request.getAspectRatio() : "16:9")
+                .displayCopyCount(request.getDisplayCopyCount() != null ? request.getDisplayCopyCount() : 0L)
+                .displayViewCount(request.getDisplayViewCount() != null ? request.getDisplayViewCount() : 0L)
+                .realCopyCount(0L)
+                .realViewCount(0L)
+                .isFeatured(true)
+                .isActive(true)
+                .category(category)
+                .createdAt(java.time.Instant.now())
+                .updatedAt(java.time.Instant.now())
+                .build();
+
+        return promptRepository.save(prompt);
+    }
+
+    @Transactional
     public Prompt updatePromptMetrics(Long id, PromptUpdateRequest request) {
         Prompt prompt = promptRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Prompt not found with id: " + id));
