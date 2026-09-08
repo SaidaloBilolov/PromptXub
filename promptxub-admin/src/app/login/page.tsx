@@ -135,7 +135,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              const clientId = '446170911640-jiu8auha60mj2ismrcd6ajd9j2r3ip7.apps.googleusercontent.com';
+              const clientId = '446170911640-jiu8auha60mj2ismrcd6ajd9j2rt3ip7.apps.googleusercontent.com';
               const redirectUri = 'https://prompt-xub.vercel.app/auth/google/callback';
               window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=profile%20email&prompt=select_account`;
             }}

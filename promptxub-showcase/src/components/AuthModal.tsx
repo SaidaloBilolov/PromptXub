@@ -20,7 +20,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     setLoadingProvider(provider);
     
     if (provider === 'google') {
-      const clientId = '446170911640-jiu8auha60mj2ismrcd6ajd9j2r3ip7.apps.googleusercontent.com';
+      const clientId = '446170911640-jiu8auha60mj2ismrcd6ajd9j2rt3ip7.apps.googleusercontent.com';
       const redirectUri = typeof window !== 'undefined' && window.location.origin.includes('localhost')
         ? `${window.location.origin}/auth/google/callback`
         : 'https://prompt-xub.vercel.app/auth/google/callback';
