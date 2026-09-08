@@ -183,7 +183,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             href={prompt.mediaUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-xs font-semibold text-cyan-300 border border-slate-700 backdrop-blur-md flex items-center gap-1.5 transition"
+            className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-xs font-semibold text-cyan-300 border border-slate-700/80 backdrop-blur-md flex items-center gap-1.5 transition shadow-lg active:scale-95"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Full Resolution</span>

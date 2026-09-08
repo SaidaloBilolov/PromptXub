@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   title: 'PromptXub — Curated AI Prompts & Media Showcase',
   description: 'Explore, discover, and 1-click copy photorealistic and cinematic AI prompts for Midjourney v6, Flux.1, Runway Gen-3, Luma and Kling.',
   keywords: ['AI Prompts', 'Midjourney Prompts', 'Flux.1 Prompts', 'Runway Gen-3', 'AI Video Showcase', 'Prompt Engineering'],
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico' }
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  }
 };
 
 export default function RootLayout({

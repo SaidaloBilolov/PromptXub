@@ -186,7 +186,7 @@ export default async function PromptDetailPage({ params }: PageProps) {
               href={prompt.mediaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute bottom-4 left-4 px-3.5 py-1.5 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-xs font-semibold text-cyan-300 border border-slate-700/80 backdrop-blur-md flex items-center gap-1.5 transition"
+              className="absolute top-4 left-4 z-20 px-3.5 py-1.5 rounded-xl bg-slate-950/90 hover:bg-slate-900 text-xs font-semibold text-cyan-300 border border-slate-700/80 backdrop-blur-md flex items-center gap-1.5 transition shadow-lg active:scale-95"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Full Resolution</span>
