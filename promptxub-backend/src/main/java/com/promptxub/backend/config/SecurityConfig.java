@@ -1,8 +1,10 @@
 package com.promptxub.backend.config;
 
+import com.promptxub.backend.security.CustomOAuth2UserService;
 import com.promptxub.backend.security.CustomUserDetailsService;
 import com.promptxub.backend.security.JwtAuthenticationEntryPoint;
 import com.promptxub.backend.security.JwtAuthenticationFilter;
+import com.promptxub.backend.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,15 +31,21 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
                           JwtAuthenticationEntryPoint unauthorizedHandler,
                           JwtAuthenticationFilter jwtAuthenticationFilter,
-                          CorsConfigurationSource corsConfigurationSource) {
+                          CorsConfigurationSource corsConfigurationSource,
+                          CustomOAuth2UserService customOAuth2UserService,
+                          OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
         this.userDetailsService = userDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.corsConfigurationSource = corsConfigurationSource;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
     }
 
     @Bean
@@ -74,8 +82,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.HEAD, "/api/v1/health", "/health").permitAll()
                         .requestMatchers("/api/v1/health", "/health").permitAll()
 
-                        // Authentication endpoints
-                        .requestMatchers("/api/v1/auth/**", "/api/auth/**", "/auth/**").permitAll()
+                        // Authentication endpoints & OAuth2 paths
+                        .requestMatchers("/api/v1/auth/**", "/api/auth/**", "/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
 
                         // Public API routes (Showcase Website & Public consumers)
                         .requestMatchers("/api/v1/public/**").permitAll()
@@ -94,6 +102,10 @@ public class SecurityConfig {
 
                         // Any other request must be authenticated
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
                 );
 
         http.authenticationProvider(authenticationProvider());

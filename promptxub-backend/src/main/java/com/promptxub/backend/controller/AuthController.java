@@ -62,4 +62,9 @@ public class AuthController {
             throw ex;
         }
     }
+
+    @GetMapping("/google")
+    public void redirectToGoogleOAuth(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        response.sendRedirect("/oauth2/authorization/google");
+    }
 }

@@ -48,6 +48,9 @@ public class User {
     @Column(length = 20)
     private String provider = "Email";
 
+    @Column(name = "google_id", length = 100)
+    private String googleId;
+
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
@@ -126,6 +129,14 @@ public class User {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public String getAvatarUrl() {
