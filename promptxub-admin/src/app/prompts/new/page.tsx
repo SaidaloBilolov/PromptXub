@@ -273,16 +273,16 @@ export default function NewPromptPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                  Format Type
+                  Format Type (Media Content)
                 </label>
-                <div className="flex items-center gap-2 pt-1">
-                  <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                    contentType === 'VIDEO' ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-purple-950 text-purple-400 border border-purple-800'
-                  }`}>
-                    {contentType === 'VIDEO' ? '🎥 VIDEO' : '📷 PHOTO'}
-                  </span>
-                  <span className="text-[11px] text-slate-500">(Auto-detected)</span>
-                </div>
+                <select
+                  value={contentType}
+                  onChange={(e) => setContentType(e.target.value as ContentType)}
+                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold"
+                >
+                  <option value="PHOTO">📷 PHOTO (Image)</option>
+                  <option value="VIDEO">🎥 VIDEO (Motion / MP4)</option>
+                </select>
               </div>
             </div>
 
