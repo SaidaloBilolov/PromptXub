@@ -76,9 +76,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Health check endpoints (Permit GET & HEAD for uptime monitoring like UptimeRobot)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/health", "/health").permitAll()
-                        .requestMatchers(HttpMethod.HEAD, "/api/v1/health", "/health").permitAll()
-                        .requestMatchers("/api/v1/health", "/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/api/v1/health", "/health").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/", "/api/v1/health", "/health").permitAll()
+                        .requestMatchers("/", "/api/v1/health", "/health").permitAll()
 
                         // Authentication endpoints & OAuth2 paths
                         .requestMatchers("/api/v1/auth/**", "/api/auth/**", "/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()

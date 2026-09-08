@@ -14,7 +14,7 @@ import java.util.Map;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
-@RequestMapping({"/api/v1/health", "/health"})
+@RequestMapping({"/", "/api/v1/health", "/health"})
 public class HealthController {
 
     private final DataSourceConfig dataSourceConfig;
