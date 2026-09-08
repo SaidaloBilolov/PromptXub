@@ -46,11 +46,11 @@ export default function LoginPage() {
         
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] mb-4 shadow-lg shadow-purple-600/30 overflow-hidden">
+          <div className="inline-flex h-14 w-14 rounded-full bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] mb-4 shadow-lg shadow-purple-600/30 overflow-hidden">
             <img
-              src="/telegram-avatar.jpg"
+              src="/circular-logo.png"
               alt="PromptXub Logo"
-              className="h-full w-full object-cover rounded-2xl"
+              className="h-full w-full object-cover rounded-full"
             />
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">Admin Portal</h1>

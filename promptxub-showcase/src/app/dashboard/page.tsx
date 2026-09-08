@@ -46,11 +46,11 @@ export default function ShowcaseDashboard() {
           <Link href="/" className="flex items-center gap-2 text-white hover:opacity-90 transition">
             <ArrowLeft className="w-4 h-4 text-slate-400" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] overflow-hidden">
                 <img
-                  src="/telegram-avatar.jpg"
+                  src="/circular-logo.png"
                   alt="PromptXub Logo"
-                  className="w-full h-full object-cover rounded-xl"
+                  className="w-full h-full object-cover rounded-full"
                 />
               </div>
               <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
