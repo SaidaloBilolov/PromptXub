@@ -41,7 +41,8 @@ public class HealthController {
         response.put("status", dbAlive ? "UP" : "DEGRADED");
         response.put("message", dbAlive ? "PromptXub Backend & PostgreSQL Database Active" : "Database Wakeup Required");
         response.put("service", "PromptXub API");
-        response.put("version", "1.0.0");
+        response.put("version", "1.0.1-HOTFIX");
+        response.put("buildTime", "2026-09-08T20:56:00Z");
         response.put("database", dataSourceConfig.getDatabaseType());
         response.put("databasePing", dbAlive ? "SUCCESS" : "FAILED");
         if (dbError != null) {

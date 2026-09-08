@@ -81,7 +81,24 @@ export async function apiClient<T = any>(
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
-      throw new Error(`API Error (${response.status} ${response.statusText}): ${errorText}`);
+      let cleanMessage = errorText;
+      if (errorText.includes('<!doctype') || errorText.includes('<html')) {
+        if (response.status === 500) {
+          cleanMessage = 'Backend service is restarting or deploying new changes. Please retry in a minute.';
+        } else if (response.status === 502 || response.status === 503) {
+          cleanMessage = 'Backend server is waking up or temporarily unavailable. Please retry in 30 seconds.';
+        } else {
+          cleanMessage = `Server returned HTTP ${response.status} ${response.statusText}`;
+        }
+      } else {
+        try {
+          const parsed = JSON.parse(errorText);
+          cleanMessage = parsed.message || parsed.error || errorText;
+        } catch {
+          cleanMessage = errorText;
+        }
+      }
+      throw new Error(`API Error (${response.status}): ${cleanMessage}`);
     }
 
     const contentType = response.headers.get('content-type');
