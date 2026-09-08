@@ -46,10 +46,12 @@ export default function LoginPage() {
         
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] mb-4 shadow-lg shadow-purple-600/30">
-            <div className="h-full w-full bg-slate-950 rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-7 h-7 text-cyan-400 animate-pulse" />
-            </div>
+          <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] mb-4 shadow-lg shadow-purple-600/30 overflow-hidden">
+            <img
+              src="/telegram-avatar.jpg"
+              alt="PromptXub Logo"
+              className="h-full w-full object-cover rounded-2xl"
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">Admin Portal</h1>
           <p className="text-xs text-slate-400 mt-1">Sign in to manage PromptXub content & analytics</p>

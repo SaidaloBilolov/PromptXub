@@ -45,10 +45,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-purple-500/20 group-hover:scale-105 transition">
-            <div className="h-full w-full bg-[#0F172A] rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-cyan-400 animate-pulse" />
-            </div>
+          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-purple-500/30 group-hover:scale-105 transition overflow-hidden">
+            <img
+              src="/telegram-avatar.jpg"
+              alt="PromptXub Logo"
+              className="h-full w-full object-cover rounded-2xl"
+            />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">

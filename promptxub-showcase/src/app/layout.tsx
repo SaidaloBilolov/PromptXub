@@ -20,12 +20,15 @@ export const metadata: Metadata = {
   keywords: ['AI Prompts', 'Midjourney Prompts', 'Flux.1 Prompts', 'Runway Gen-3', 'AI Video Showcase', 'Prompt Engineering'],
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico' }
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+      { url: '/telegram-avatar.jpg', type: 'image/jpeg' },
     ],
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
-  }
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({

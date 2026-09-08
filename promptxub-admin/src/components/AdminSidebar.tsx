@@ -28,10 +28,12 @@ export const AdminSidebar: React.FC = () => {
         {/* Brand */}
         <div className="h-20 px-6 border-b border-slate-800 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px]">
-              <div className="h-full w-full bg-slate-950 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-              </div>
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px] overflow-hidden">
+              <img
+                src="/telegram-avatar.jpg"
+                alt="PromptXub Logo"
+                className="h-full w-full object-cover rounded-xl"
+              />
             </div>
             <div>
               <span className="font-extrabold text-base text-white tracking-tight">Prompt<span className="text-cyan-400">Xub</span></span>

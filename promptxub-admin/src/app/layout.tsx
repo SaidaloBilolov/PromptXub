@@ -19,12 +19,15 @@ export const metadata: Metadata = {
   description: 'Enterprise moderation and content management portal for PromptXub AI Platform',
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico' }
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+      { url: '/telegram-avatar.jpg', type: 'image/jpeg' },
     ],
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
-  }
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
