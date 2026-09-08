@@ -192,9 +192,10 @@ public class PromptAdminController {
     /**
      * Admin endpoint to create new prompt with media file.
      */
+    @org.springframework.transaction.annotation.Transactional
     @PostMapping(value = "/admin/prompts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPrompt(
-            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("promptText") String promptText,
             @RequestParam(value = "negativePrompt", required = false) String negativePrompt,
@@ -204,13 +205,22 @@ public class PromptAdminController {
             @RequestParam(value = "categorySlug", required = false) String categorySlug,
             @RequestParam(value = "tags", required = false) String tags,
             @RequestParam(value = "displayCopyCount", required = false) Long displayCopyCount,
-            @RequestParam(value = "displayViewCount", required = false) Long displayViewCount) throws Exception {
-        Prompt prompt = promptService.createPromptWithMedia(
-                file, title, promptText, negativePrompt, aiModel,
-                contentType, aspectRatio, categorySlug, tags,
-                displayCopyCount, displayViewCount
-        );
-        return ResponseEntity.ok(mapToPromptResponse(prompt));
+            @RequestParam(value = "displayViewCount", required = false) Long displayViewCount) {
+        try {
+            Prompt prompt = promptService.createPromptWithMedia(
+                    file, title, promptText, negativePrompt, aiModel,
+                    contentType, aspectRatio, categorySlug, tags,
+                    displayCopyCount, displayViewCount
+            );
+            return ResponseEntity.ok(mapToPromptResponse(prompt));
+        } catch (Throwable ex) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            ex.printStackTrace(new java.io.PrintWriter(sw));
+            Map<String, Object> err = new java.util.LinkedHashMap<>();
+            err.put("error", ex.getClass().getName() + ": " + ex.getMessage());
+            err.put("trace", sw.toString());
+            return ResponseEntity.status(500).body(err);
+        }
     }
 
     /**
