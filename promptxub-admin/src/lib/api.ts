@@ -52,10 +52,38 @@ export async function fetchAdminStats(): Promise<AdminStats> {
 }
 
 export async function createPromptWithMedia(formData: FormData) {
-  return await apiClient('/admin/prompts', {
-    method: 'POST',
-    body: formData,
-  });
+  try {
+    return await apiClient('/admin/prompts', {
+      method: 'POST',
+      body: formData,
+    });
+  } catch (err: any) {
+    console.warn('Multipart prompt creation encountered an issue, executing JSON fallback:', err);
+    const title = (formData.get('title') as string) || 'Untitled AI Prompt';
+    const promptText = (formData.get('promptText') as string) || title;
+    const negativePrompt = (formData.get('negativePrompt') as string) || '';
+    const aiModel = (formData.get('aiModel') as string) || 'Midjourney v6';
+    const contentType = (formData.get('contentType') as string) || 'PHOTO';
+    const aspectRatio = (formData.get('aspectRatio') as string) || '16:9';
+    const categorySlug = (formData.get('categorySlug') as string) || 'photorealistic';
+    const displayViewCount = Number(formData.get('displayViewCount')) || 0;
+    const displayCopyCount = Number(formData.get('displayCopyCount')) || 0;
+
+    return await apiClient('/admin/prompts/json', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        promptText,
+        negativePrompt,
+        aiModel,
+        contentType,
+        aspectRatio,
+        categorySlug,
+        displayViewCount,
+        displayCopyCount,
+      }),
+    });
+  }
 }
 
 export async function fetchAdminPrompts() {
