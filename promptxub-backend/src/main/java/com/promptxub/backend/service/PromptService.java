@@ -130,8 +130,6 @@ public class PromptService {
                 .isActive(true)
                 .category(category)
                 .tags(tagSet)
-                .createdAt(java.time.Instant.now())
-                .updatedAt(java.time.Instant.now())
                 .build();
 
         return promptRepository.save(prompt);
@@ -175,8 +173,6 @@ public class PromptService {
                 .isFeatured(true)
                 .isActive(true)
                 .category(category)
-                .createdAt(java.time.Instant.now())
-                .updatedAt(java.time.Instant.now())
                 .build();
 
         return promptRepository.save(prompt);
