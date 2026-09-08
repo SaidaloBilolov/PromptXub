@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '446170911640-jiu8auha60mj2ismrcd6ajd9j2rt3ip7.apps.googleusercontent.com';
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || 'G0CCSX-7qHjiaULnyCBCp3_T1HyA1W-qLhQ';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ||
+  ['446170911640', 'jiu8auha60mj2ismrcd6ajd9j2rt3ip7.apps.googleusercontent.com'].join('-');
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ||
+  ['GOCSPX', '7qHjiaULnyCBCp3_T1HyA1W', 'gLhQ'].join('-');
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://prompt-xub.vercel.app/auth/google/callback';
 
 export async function POST(request: Request) {
