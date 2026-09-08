@@ -126,13 +126,10 @@ export default function NewPromptPage() {
       setSuccessMsg('Prompt successfully published to PromptXub!');
       setTimeout(() => {
         router.push('/dashboard');
-      }, 1500);
+      }, 1200);
     } catch (err: any) {
-      // In development preview mode, simulate success if backend is offline
-      setSuccessMsg('Prompt published successfully! (Saved & live on showcase)');
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1500);
+      console.error('Upload prompt error:', err);
+      setErrorMsg(err.message || 'Failed to publish prompt. Please check backend connection and try again.');
     } finally {
       setLoading(false);
     }
