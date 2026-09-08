@@ -38,6 +38,10 @@ export default function NewPromptPage() {
   const [displayViewCount, setDisplayViewCount] = useState<number>(0);
   const [displayCopyCount, setDisplayCopyCount] = useState<number>(0);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [isCustomModel, setIsCustomModel] = useState(false);
+  const [customAiModel, setCustomAiModel] = useState('');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
 
   // Tag Chips
   const [tagInput, setTagInput] = useState('');
@@ -193,8 +197,16 @@ export default function NewPromptPage() {
                   AI Model Generator *
                 </label>
                 <select
-                  value={aiModel}
-                  onChange={(e) => setAiModel(e.target.value)}
+                  value={isCustomModel ? '__CUSTOM__' : aiModel}
+                  onChange={(e) => {
+                    if (e.target.value === '__CUSTOM__') {
+                      setIsCustomModel(true);
+                      setAiModel(customAiModel || '');
+                    } else {
+                      setIsCustomModel(false);
+                      setAiModel(e.target.value);
+                    }
+                  }}
                   className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
                 >
                   {aiModels.map((model) => (
@@ -202,7 +214,23 @@ export default function NewPromptPage() {
                       {model}
                     </option>
                   ))}
+                  <option value="__CUSTOM__">✍️ + Custom / Write New Model Name...</option>
                 </select>
+                {isCustomModel && (
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      required
+                      value={customAiModel}
+                      onChange={(e) => {
+                        setCustomAiModel(e.target.value);
+                        setAiModel(e.target.value);
+                      }}
+                      placeholder="Type custom model (e.g. Ideogram 2.0, Midjourney v6.1, Sora)..."
+                      className="w-full bg-purple-950/40 border border-purple-500/80 rounded-xl px-4 py-2 text-sm text-cyan-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -242,8 +270,16 @@ export default function NewPromptPage() {
                   Category
                 </label>
                 <select
-                  value={categorySlug}
-                  onChange={(e) => setCategorySlug(e.target.value)}
+                  value={isCustomCategory ? '__CUSTOM__' : categorySlug}
+                  onChange={(e) => {
+                    if (e.target.value === '__CUSTOM__') {
+                      setIsCustomCategory(true);
+                      setCategorySlug(customCategory || '');
+                    } else {
+                      setIsCustomCategory(false);
+                      setCategorySlug(e.target.value);
+                    }
+                  }}
                   className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   {categories.map((cat) => (
@@ -251,7 +287,23 @@ export default function NewPromptPage() {
                       {cat.name}
                     </option>
                   ))}
+                  <option value="__CUSTOM__">✍️ + Custom / Add New Category...</option>
                 </select>
+                {isCustomCategory && (
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      required
+                      value={customCategory}
+                      onChange={(e) => {
+                        setCustomCategory(e.target.value);
+                        setCategorySlug(e.target.value);
+                      }}
+                      placeholder="Type new category (e.g. Logo & Vector, Fashion)..."
+                      className="w-full bg-purple-950/40 border border-purple-500/80 rounded-xl px-3 py-1.5 text-xs text-cyan-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

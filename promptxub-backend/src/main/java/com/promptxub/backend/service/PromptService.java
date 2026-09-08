@@ -89,7 +89,19 @@ public class PromptService {
 
         Category category = null;
         if (categorySlug != null && !categorySlug.isBlank()) {
-            category = categoryRepository.findBySlug(categorySlug).orElse(null);
+            String cleanSlug = categorySlug.trim().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+            category = categoryRepository.findBySlug(cleanSlug).orElse(null);
+            if (category == null && !cleanSlug.isBlank()) {
+                String name = categorySlug.trim();
+                Category newCat = Category.builder()
+                        .name(name)
+                        .slug(cleanSlug)
+                        .displayOrder(99)
+                        .build();
+                try {
+                    category = categoryRepository.save(newCat);
+                } catch (Throwable ignored) {}
+            }
         }
         if (category == null) {
             category = categoryRepository.findAll().stream().findFirst().orElse(null);
@@ -152,7 +164,19 @@ public class PromptService {
 
         Category category = null;
         if (request.getCategorySlug() != null && !request.getCategorySlug().isBlank()) {
-            category = categoryRepository.findBySlug(request.getCategorySlug()).orElse(null);
+            String cleanSlug = request.getCategorySlug().trim().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+            category = categoryRepository.findBySlug(cleanSlug).orElse(null);
+            if (category == null && !cleanSlug.isBlank()) {
+                String name = request.getCategorySlug().trim();
+                Category newCat = Category.builder()
+                        .name(name)
+                        .slug(cleanSlug)
+                        .displayOrder(99)
+                        .build();
+                try {
+                    category = categoryRepository.save(newCat);
+                } catch (Throwable ignored) {}
+            }
         }
         if (category == null) {
             category = categoryRepository.findAll().stream().findFirst().orElse(null);
@@ -199,7 +223,19 @@ public class PromptService {
             prompt.setAspectRatio(request.getAspectRatio());
         }
         if (request.getCategorySlug() != null && !request.getCategorySlug().isBlank()) {
-            Category cat = categoryRepository.findBySlug(request.getCategorySlug()).orElse(null);
+            String cleanSlug = request.getCategorySlug().trim().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+            Category cat = categoryRepository.findBySlug(cleanSlug).orElse(null);
+            if (cat == null && !cleanSlug.isBlank()) {
+                String name = request.getCategorySlug().trim();
+                Category newCat = Category.builder()
+                        .name(name)
+                        .slug(cleanSlug)
+                        .displayOrder(99)
+                        .build();
+                try {
+                    cat = categoryRepository.save(newCat);
+                } catch (Throwable ignored) {}
+            }
             if (cat != null) {
                 prompt.setCategory(cat);
             }

@@ -709,40 +709,74 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">AI Model Generator</label>
-                <select
-                  value={editingPrompt.aiModel}
-                  onChange={(e) => setEditingPrompt({ ...editingPrompt, aiModel: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
-                >
-                  <option value="Midjourney v6">Midjourney v6</option>
-                  <option value="Midjourney">Midjourney</option>
-                  <option value="Flux 1.1 Pro">Flux 1.1 Pro</option>
-                  <option value="Flux Dev">Flux Dev</option>
-                  <option value="DALL-E 3">DALL-E 3</option>
-                  <option value="Stable Diffusion XL">Stable Diffusion XL</option>
-                  <option value="Runway Gen-3">Runway Gen-3</option>
-                  <option value="Luma Dream Machine">Luma Dream Machine</option>
-                  <option value="Sora">Sora</option>
-                  <option value="Kling AI">Kling AI</option>
-                </select>
+                <div className="space-y-1.5">
+                  <select
+                    value={['Midjourney v6', 'Midjourney', 'Flux 1.1 Pro', 'Flux Dev', 'DALL-E 3', 'Stable Diffusion XL', 'Runway Gen-3', 'Luma Dream Machine', 'Sora', 'Kling AI'].includes(editingPrompt.aiModel) ? editingPrompt.aiModel : '__CUSTOM__'}
+                    onChange={(e) => {
+                      if (e.target.value !== '__CUSTOM__') {
+                        setEditingPrompt({ ...editingPrompt, aiModel: e.target.value });
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="Midjourney v6">Midjourney v6</option>
+                    <option value="Midjourney">Midjourney</option>
+                    <option value="Flux 1.1 Pro">Flux 1.1 Pro</option>
+                    <option value="Flux Dev">Flux Dev</option>
+                    <option value="DALL-E 3">DALL-E 3</option>
+                    <option value="Stable Diffusion XL">Stable Diffusion XL</option>
+                    <option value="Runway Gen-3">Runway Gen-3</option>
+                    <option value="Luma Dream Machine">Luma Dream Machine</option>
+                    <option value="Sora">Sora</option>
+                    <option value="Kling AI">Kling AI</option>
+                    <option value="__CUSTOM__">✍️ + Custom / Yozib qo'shish...</option>
+                  </select>
+
+                  {(!['Midjourney v6', 'Midjourney', 'Flux 1.1 Pro', 'Flux Dev', 'DALL-E 3', 'Stable Diffusion XL', 'Runway Gen-3', 'Luma Dream Machine', 'Sora', 'Kling AI'].includes(editingPrompt.aiModel) || editingPrompt.aiModel === '') && (
+                    <input
+                      type="text"
+                      value={editingPrompt.aiModel}
+                      onChange={(e) => setEditingPrompt({ ...editingPrompt, aiModel: e.target.value })}
+                      placeholder="Custom model nomini yozing (masalan: Ideogram 2.0)..."
+                      className="w-full px-3 py-2 rounded-xl bg-purple-950/40 border border-purple-500/80 text-cyan-200 text-xs focus:outline-none"
+                    />
+                  )}
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">Kategoriya</label>
-                <select
-                  value={editingPrompt.categorySlug}
-                  onChange={(e) => setEditingPrompt({ ...editingPrompt, categorySlug: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
-                >
-                  <option value="3d-render">3D & Render</option>
-                  <option value="fotorealizm">Fotorealizm</option>
-                  <option value="portret-insonlar">Portret & Insonlar</option>
-                  <option value="fantastika-scifi">Fantastika & Sci-Fi</option>
-                  <option value="kiberpank-neon">Kiberpank & Neon</option>
-                  <option value="tabiat-landshaft">Tabiat & Landshaft</option>
-                  <option value="anime-sanat">Anime & San'at</option>
-                  <option value="memorchilik-bino">Me'morchilik & Bino</option>
-                </select>
+                <div className="space-y-1.5">
+                  <select
+                    value={['3d-render', 'fotorealizm', 'portret-insonlar', 'fantastika-scifi', 'kiberpank-neon', 'tabiat-landshaft', 'anime-sanat', 'memorchilik-bino', 'photorealistic', 'cinematic', 'anime-concept', 'architecture', '3d-cgi', 'ai-video-motion'].includes(editingPrompt.categorySlug) ? editingPrompt.categorySlug : '__CUSTOM__'}
+                    onChange={(e) => {
+                      if (e.target.value !== '__CUSTOM__') {
+                        setEditingPrompt({ ...editingPrompt, categorySlug: e.target.value });
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="photorealistic">Fotorealizm (Photorealistic)</option>
+                    <option value="cinematic">Kinematik (Cinematic)</option>
+                    <option value="anime-concept">Anime & San'at (Anime & Concept)</option>
+                    <option value="architecture">Me'morchilik (Architecture)</option>
+                    <option value="3d-cgi">3D & CGI</option>
+                    <option value="ai-video-motion">AI Video & Motion</option>
+                    <option value="kiberpank-neon">Kiberpank & Neon</option>
+                    <option value="tabiat-landshaft">Tabiat & Landshaft</option>
+                    <option value="__CUSTOM__">✍️ + Custom / Yangi Kategoriya Yozish...</option>
+                  </select>
+
+                  {(!['3d-render', 'fotorealizm', 'portret-insonlar', 'fantastika-scifi', 'kiberpank-neon', 'tabiat-landshaft', 'anime-sanat', 'memorchilik-bino', 'photorealistic', 'cinematic', 'anime-concept', 'architecture', '3d-cgi', 'ai-video-motion'].includes(editingPrompt.categorySlug) || editingPrompt.categorySlug === '') && (
+                    <input
+                      type="text"
+                      value={editingPrompt.categorySlug}
+                      onChange={(e) => setEditingPrompt({ ...editingPrompt, categorySlug: e.target.value })}
+                      placeholder="Yangi kategoriya nomini yozing (masalan: Logo & Vector)..."
+                      className="w-full px-3 py-2 rounded-xl bg-purple-950/40 border border-purple-500/80 text-cyan-200 text-xs focus:outline-none"
+                    />
+                  )}
+                </div>
               </div>
 
               <div>
