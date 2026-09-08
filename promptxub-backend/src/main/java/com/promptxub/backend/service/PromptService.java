@@ -137,6 +137,20 @@ public class PromptService {
         if (request.getAiModel() != null && !request.getAiModel().isBlank()) {
             prompt.setAiModel(request.getAiModel());
         }
+        if (request.getAspectRatio() != null && !request.getAspectRatio().isBlank()) {
+            prompt.setAspectRatio(request.getAspectRatio());
+        }
+        if (request.getCategorySlug() != null && !request.getCategorySlug().isBlank()) {
+            Category cat = categoryRepository.findBySlug(request.getCategorySlug()).orElse(null);
+            if (cat != null) {
+                prompt.setCategory(cat);
+            }
+        }
+        if (request.getContentType() != null && !request.getContentType().isBlank()) {
+            try {
+                prompt.setContentType(ContentType.valueOf(request.getContentType().toUpperCase()));
+            } catch (Exception ignored) {}
+        }
         if (request.getDisplayCopyCount() != null) {
             prompt.setDisplayCopyCount(request.getDisplayCopyCount());
         } else if (request.getCopyCount() != null) {
