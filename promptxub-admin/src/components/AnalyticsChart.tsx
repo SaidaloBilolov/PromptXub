@@ -273,80 +273,113 @@ export function AnalyticsChart() {
               />
             )}
 
-            {/* Interactive Data Dots & Hover Detection */}
-            {coordinates.map((c) => (
-              <g key={c.item.date} className="cursor-pointer group/dot" onMouseEnter={() => setHoveredPoint(c.item)}>
-                {/* Vertical Cursor Line on Hover */}
-                <line
-                  x1={c.x}
-                  y1="20"
-                  x2={c.x}
-                  y2="220"
-                  stroke="#475569"
-                  strokeWidth="1"
-                  strokeDasharray="2 2"
-                  className="opacity-0 group-hover/dot:opacity-100 transition-opacity"
-                />
-                {/* Views Dot */}
-                <circle
-                  cx={c.x}
-                  cy={c.yView}
-                  r="4"
-                  fill="#06b6d4"
-                  className="transition-transform group-hover/dot:r-6"
-                />
-                {/* Copies Dot */}
-                <circle
-                  cx={c.x}
-                  cy={c.yCopy}
-                  r="4"
-                  fill="#a855f7"
-                  className="transition-transform group-hover/dot:r-6"
-                />
-              </g>
-            ))}
+            {/* Wide Full-Column Hover Trigger Slices */}
+            {coordinates.map((c, index) => {
+              const sliceWidth = 800 / (coordinates.length || 1);
+              const sliceX = Math.max(0, c.x - sliceWidth / 2);
+              const isHovered = hoveredPoint?.date === c.item.date;
+
+              return (
+                <g key={c.item.date} onMouseEnter={() => setHoveredPoint(c.item)}>
+                  {/* Invisible full-height hover zone */}
+                  <rect
+                    x={sliceX}
+                    y="0"
+                    width={sliceWidth}
+                    height="240"
+                    fill="transparent"
+                    className="cursor-pointer"
+                  />
+
+                  {/* Highlight Vertical Cursor Line */}
+                  {isHovered && (
+                    <line
+                      x1={c.x}
+                      y1="10"
+                      x2={c.x}
+                      y2="220"
+                      stroke="#a855f7"
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                      className="animate-fadeIn"
+                    />
+                  )}
+
+                  {/* Views Dot */}
+                  <circle
+                    cx={c.x}
+                    cy={c.yView}
+                    r={isHovered ? 6 : 3.5}
+                    fill="#06b6d4"
+                    stroke={isHovered ? '#ffffff' : 'none'}
+                    strokeWidth={isHovered ? 2 : 0}
+                    className="transition-all duration-200"
+                  />
+
+                  {/* Copies Dot */}
+                  <circle
+                    cx={c.x}
+                    cy={c.yCopy}
+                    r={isHovered ? 6 : 3.5}
+                    fill="#a855f7"
+                    stroke={isHovered ? '#ffffff' : 'none'}
+                    strokeWidth={isHovered ? 2 : 0}
+                    className="transition-all duration-200"
+                  />
+                </g>
+              );
+            })}
           </svg>
         )}
 
         {/* Hover Tooltip Overlay */}
         {hoveredPoint && (
-          <div className="absolute top-4 right-4 bg-slate-900/95 border border-slate-700 rounded-2xl p-3 shadow-2xl backdrop-blur-md text-xs space-y-1 z-30 animate-fadeIn pointer-events-none">
-            <div className="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center justify-between gap-3">
-              <span>📅 {hoveredPoint.date}</span>
-              <span className="text-[10px] text-slate-400 font-mono">
+          <div className="absolute top-4 right-4 bg-[#0F172A]/95 border border-purple-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-xl text-xs space-y-2 z-30 animate-fadeIn pointer-events-none min-w-[200px]">
+            <div className="font-bold text-white border-b border-slate-800 pb-2 flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5 text-slate-200">
+                <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                {hoveredPoint.date}
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800">
                 {hoveredPoint.viewsCount > 0
                   ? ((hoveredPoint.copiesCount / hoveredPoint.viewsCount) * 100).toFixed(1)
                   : '0.0'}% CR
               </span>
             </div>
-            <div className="flex items-center justify-between gap-4 text-cyan-400 font-semibold">
-              <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Views:</span>
-              <span className="font-mono">{hoveredPoint.viewsCount.toLocaleString()}</span>
+            <div className="flex items-center justify-between gap-4 text-cyan-400 font-bold">
+              <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Real Views:</span>
+              <span className="font-mono text-sm">{hoveredPoint.viewsCount.toLocaleString()}</span>
             </div>
-            <div className="flex items-center justify-between gap-4 text-purple-400 font-semibold">
-              <span className="flex items-center gap-1"><Flame className="w-3 h-3 text-orange-400" /> Copies:</span>
-              <span className="font-mono">{hoveredPoint.copiesCount.toLocaleString()}</span>
+            <div className="flex items-center justify-between gap-4 text-purple-400 font-bold">
+              <span className="flex items-center gap-1.5"><Flame className="w-3.5 h-3.5 text-orange-400" /> Real Copies:</span>
+              <span className="font-mono text-sm">{hoveredPoint.copiesCount.toLocaleString()}</span>
             </div>
-            {hoveredPoint.visitorsCount !== undefined && (
-              <div className="flex items-center justify-between gap-4 text-slate-400 text-[11px]">
-                <span className="flex items-center gap-1"><Users className="w-3 h-3 text-slate-400" /> Visitors:</span>
-                <span className="font-mono">{hoveredPoint.visitorsCount.toLocaleString()}</span>
-              </div>
-            )}
           </div>
         )}
 
       </div>
 
-      {/* Chart Legend */}
-      <div className="flex items-center justify-center gap-6 text-xs font-semibold text-slate-300">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
-          <span>Real Daily Views</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50" />
-          <span>Real Daily Copies</span>
+      {/* X-Axis Timeline Date Labels & Legend */}
+      <div className="space-y-3">
+        {/* Key Timeline Dates Bar */}
+        {coordinates.length > 0 && (
+          <div className="flex items-center justify-between px-2 text-[10px] font-mono text-slate-400">
+            <span>{coordinates[0]?.item.date}</span>
+            {coordinates.length > 4 && <span>{coordinates[Math.floor(coordinates.length / 2)]?.item.date}</span>}
+            <span>{coordinates[coordinates.length - 1]?.item.date}</span>
+          </div>
+        )}
+
+        {/* Chart Legend */}
+        <div className="flex items-center justify-center gap-6 text-xs font-semibold text-slate-300 border-t border-slate-800/60 pt-3">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
+            <span>Real Daily Views (DB)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50" />
+            <span>Real Daily Copies (DB)</span>
+          </div>
         </div>
       </div>
 

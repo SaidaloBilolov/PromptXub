@@ -29,6 +29,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Trash2,
+  BarChart2,
+  Activity,
 } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
@@ -40,6 +42,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  // Analyze Prompt State
+  const [analyzingPrompt, setAnalyzingPrompt] = useState<any | null>(null);
 
   // Edit Prompt Metrics State
   const [editingPrompt, setEditingPrompt] = useState<{
@@ -525,7 +530,18 @@ export default function DashboardPage() {
 
                           {/* Actions Column */}
                           <td className="py-3 pr-2 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                              {/* Tahlil (Analyze) Button */}
+                              <button
+                                onClick={() => setAnalyzingPrompt(item)}
+                                title="Detailed Analytics & Prompt Analysis"
+                                className="px-2 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 hover:text-white border border-cyan-800/80 transition active:scale-95 flex items-center gap-1 text-[11px] font-bold shadow-sm"
+                              >
+                                <BarChart2 className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Tahlil</span>
+                              </button>
+
+                              {/* Edit Button */}
                               <button
                                 onClick={() =>
                                   setEditingPrompt({
@@ -536,15 +552,17 @@ export default function DashboardPage() {
                                   })
                                 }
                                 title="Edit Public Display Metrics"
-                                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition active:scale-95 flex items-center gap-1 text-[11px] font-semibold"
+                                className="px-2 py-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-800/80 transition active:scale-95 flex items-center gap-1 text-[11px] font-bold shadow-sm"
                               >
                                 <Edit3 className="w-3.5 h-3.5 text-purple-400" />
                                 <span>Edit</span>
                               </button>
+
+                              {/* Copy Link Button */}
                               <button
                                 onClick={() => handleCopyPublicLink(item.id)}
                                 title="Copy Public URL for Instagram/Socials"
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-950/70 hover:bg-purple-900/90 text-purple-300 hover:text-white border border-purple-800/60 text-[11px] font-semibold transition active:scale-95 shadow-sm"
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[11px] font-semibold transition active:scale-95 shadow-sm"
                               >
                                 {copiedId === item.id ? (
                                   <>
@@ -558,13 +576,15 @@ export default function DashboardPage() {
                                   </>
                                 )}
                               </button>
+
+                              {/* O'chirish (Delete) Button */}
                               <button
                                 onClick={() => setDeletingPromptId(item.id)}
                                 title="Delete Prompt"
-                                className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 hover:text-white border border-rose-800/60 transition active:scale-95 flex items-center gap-1 text-[11px] font-semibold"
+                                className="px-2 py-1 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white border border-rose-800/80 transition active:scale-95 flex items-center gap-1 text-[11px] font-bold shadow-sm"
                               >
                                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                                <span>Delete</span>
+                                <span>O'chirish</span>
                               </button>
                             </div>
                           </td>
@@ -688,6 +708,145 @@ export default function DashboardPage() {
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Save Changes</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prompt Detailed Analysis Modal (Tahlil Modali) */}
+      {analyzingPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-2xl bg-[#0F172A] border border-cyan-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-cyan-950/80 text-cyan-400 border border-cyan-800/60">
+                  <BarChart2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Prompt Tahlili & Analitikasi</h3>
+                  <p className="text-xs text-slate-400">ID: #{analyzingPrompt.id} • Real DB ko'rsatkichlari va sozlangan raqamlar</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setAnalyzingPrompt(null)}
+                className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white border border-slate-800 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Media & Title Overview */}
+            <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
+              <img
+                src={analyzingPrompt.mediaUrl}
+                alt=""
+                className="w-24 h-24 rounded-xl object-cover bg-slate-900 shrink-0 border border-slate-800"
+              />
+              <div className="space-y-2 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-950 text-purple-300 border border-purple-800">
+                    {analyzingPrompt.aiModel}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-950 text-cyan-300 border border-cyan-800">
+                    {analyzingPrompt.contentType}
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-white leading-snug">{analyzingPrompt.title}</h4>
+              </div>
+            </div>
+
+            {/* Metrics Comparison Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Real Internal Stats (Database) */}
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-cyan-900/60 space-y-3">
+                <div className="flex items-center justify-between text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                  <span>Haqiqiy Statistikalar (DB)</span>
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Haqiqiy Ko'rishlar:</span>
+                    <span className="font-bold text-white">{analyzingPrompt.realViewCount ?? 0} views</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Haqiqiy Copy Qilingan:</span>
+                    <span className="font-bold text-orange-400">{analyzingPrompt.realCopyCount ?? 0} copies</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                    <span className="text-slate-400">Konversiya Rate:</span>
+                    <span className="font-extrabold text-emerald-400">
+                      {analyzingPrompt.realViewCount > 0
+                        ? ((analyzingPrompt.realCopyCount / analyzingPrompt.realViewCount) * 100).toFixed(1)
+                        : '0.0'}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Public Display Stats (User Facing) */}
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-purple-900/60 space-y-3">
+                <div className="flex items-center justify-between text-xs font-bold text-purple-400 uppercase tracking-wider">
+                  <span>Foydalanuvchilarga Ko'rinadigan</span>
+                  <Eye className="w-4 h-4 text-purple-400" />
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Display Views:</span>
+                    <span className="font-bold text-white">{(analyzingPrompt.displayViewCount ?? analyzingPrompt.viewCount ?? 0).toLocaleString()} views</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Display Copies:</span>
+                    <span className="font-bold text-purple-300">{(analyzingPrompt.displayCopyCount ?? analyzingPrompt.copyCount ?? 0).toLocaleString()} copies</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                    <span className="text-slate-400">Holat:</span>
+                    <span className="font-bold text-cyan-300">Sozlangan Base + Real Increments</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Prompt Command Content */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-purple-400 uppercase tracking-wider block">Prompt Matni</span>
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 leading-relaxed select-all">
+                {analyzingPrompt.promptText}
+              </div>
+            </div>
+
+            {/* Modal Bottom Actions: Edit & Delete */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  const pId = analyzingPrompt.id;
+                  setAnalyzingPrompt(null);
+                  setDeletingPromptId(pId);
+                }}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-rose-950/40"
+              >
+                <Trash2 className="w-4 h-4 text-rose-400" />
+                <span>Promptni O'chirish</span>
+              </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    const pToEdit = analyzingPrompt;
+                    setAnalyzingPrompt(null);
+                    setEditingPrompt({
+                      id: pToEdit.id,
+                      title: pToEdit.title,
+                      viewCount: pToEdit.displayViewCount ?? pToEdit.viewCount ?? 0,
+                      copyCount: pToEdit.displayCopyCount ?? pToEdit.copyCount ?? 0,
+                    });
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-purple-600/30"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Statistikasini O'zgartirish</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
