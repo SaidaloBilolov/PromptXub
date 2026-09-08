@@ -69,7 +69,19 @@ export async function fetchAdminPrompts() {
 
 export async function updatePromptMetrics(
   id: number,
-  data: { viewCount?: number; copyCount?: number; displayViewCount?: number; displayCopyCount?: number; title?: string; aiModel?: string }
+  data: {
+    title?: string;
+    promptText?: string;
+    negativePrompt?: string;
+    aiModel?: string;
+    aspectRatio?: string;
+    categorySlug?: string;
+    contentType?: string;
+    viewCount?: number;
+    copyCount?: number;
+    displayViewCount?: number;
+    displayCopyCount?: number;
+  }
 ) {
   try {
     return await apiClient(`/admin/prompts/${id}`, {

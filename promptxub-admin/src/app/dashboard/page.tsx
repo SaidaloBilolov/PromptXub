@@ -46,10 +46,16 @@ export default function DashboardPage() {
   // Analyze Prompt State
   const [analyzingPrompt, setAnalyzingPrompt] = useState<any | null>(null);
 
-  // Edit Prompt Metrics State
+  // Edit Prompt State
   const [editingPrompt, setEditingPrompt] = useState<{
     id: number;
     title: string;
+    promptText: string;
+    negativePrompt: string;
+    aiModel: string;
+    aspectRatio: string;
+    categorySlug: string;
+    contentType: string;
     viewCount: number;
     copyCount: number;
   } | null>(null);
@@ -93,10 +99,19 @@ export default function DashboardPage() {
   };
 
   const handleSaveMetrics = async () => {
-    if (!editingPrompt || !stats) return;
+    if (!editingPrompt) return;
     setIsSaving(true);
     try {
       await updatePromptMetrics(editingPrompt.id, {
+        title: editingPrompt.title,
+        promptText: editingPrompt.promptText,
+        negativePrompt: editingPrompt.negativePrompt,
+        aiModel: editingPrompt.aiModel,
+        aspectRatio: editingPrompt.aspectRatio,
+        categorySlug: editingPrompt.categorySlug,
+        contentType: editingPrompt.contentType,
+        displayViewCount: Number(editingPrompt.viewCount),
+        displayCopyCount: Number(editingPrompt.copyCount),
         viewCount: Number(editingPrompt.viewCount),
         copyCount: Number(editingPrompt.copyCount),
       });
@@ -106,6 +121,13 @@ export default function DashboardPage() {
           p.id === editingPrompt.id
             ? {
                 ...p,
+                title: editingPrompt.title,
+                promptText: editingPrompt.promptText,
+                negativePrompt: editingPrompt.negativePrompt,
+                aiModel: editingPrompt.aiModel,
+                aspectRatio: editingPrompt.aspectRatio,
+                category: { ...p.category, slug: editingPrompt.categorySlug },
+                contentType: editingPrompt.contentType,
                 displayViewCount: Number(editingPrompt.viewCount),
                 displayCopyCount: Number(editingPrompt.copyCount),
                 viewCount: Number(editingPrompt.viewCount),
@@ -115,18 +137,23 @@ export default function DashboardPage() {
         )
       );
 
-      setStats({
-        ...stats,
-        topCopiedPrompts: stats.topCopiedPrompts.map((p) =>
-          p.id === editingPrompt.id
-            ? {
-                ...p,
-                viewCount: Number(editingPrompt.viewCount),
-                copyCount: Number(editingPrompt.copyCount),
-              }
-            : p
-        ),
-      });
+      if (stats) {
+        setStats({
+          ...stats,
+          topCopiedPrompts: stats.topCopiedPrompts.map((p) =>
+            p.id === editingPrompt.id
+              ? {
+                  ...p,
+                  title: editingPrompt.title,
+                  aiModel: editingPrompt.aiModel,
+                  contentType: editingPrompt.contentType as any,
+                  viewCount: Number(editingPrompt.viewCount),
+                  copyCount: Number(editingPrompt.copyCount),
+                }
+              : p
+          ),
+        });
+      }
 
       setEditingPrompt(null);
     } catch (err) {
@@ -546,7 +573,13 @@ export default function DashboardPage() {
                                 onClick={() =>
                                   setEditingPrompt({
                                     id: item.id,
-                                    title: item.title,
+                                    title: item.title || '',
+                                    promptText: item.promptText || '',
+                                    negativePrompt: item.negativePrompt || '',
+                                    aiModel: item.aiModel || 'Midjourney v6',
+                                    aspectRatio: item.aspectRatio || '16:9',
+                                    categorySlug: item.category?.slug || item.categorySlug || '3d-render',
+                                    contentType: item.contentType || 'PHOTO',
                                     viewCount: displayViews,
                                     copyCount: displayCopies,
                                   })
@@ -641,14 +674,17 @@ export default function DashboardPage() {
         </main>
       </div>
 
-      {/* Edit Metrics Modal */}
+      {/* Edit Prompt Modal */}
       {editingPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md bg-[#0F172A] border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-5">
+          <div className="w-full max-w-2xl bg-[#0F172A] border border-purple-900/80 rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-purple-400" /> Edit Prompt Analytics
-              </h3>
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-purple-400" /> Promptni Tahrirlash (Edit Prompt)
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Sarlavha, matn, AI model, kategoriya va statistika ko'rsatkichlarini o'zgartirish</p>
+              </div>
               <button
                 onClick={() => setEditingPrompt(null)}
                 className="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white"
@@ -657,56 +693,158 @@ export default function DashboardPage() {
               </button>
             </div>
 
+            {/* Title Input */}
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Prompt Title</label>
-              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold line-clamp-1">
-                {editingPrompt.title}
+              <label className="block text-xs font-bold text-slate-300 mb-1">Prompt Sarlavhasi (Title)</label>
+              <input
+                type="text"
+                value={editingPrompt.title}
+                onChange={(e) => setEditingPrompt({ ...editingPrompt, title: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-semibold focus:outline-none focus:border-purple-500"
+                placeholder="Prompt sarlavhasini kiriting..."
+              />
+            </div>
+
+            {/* Grid of AI Model, Category, Aspect Ratio, Content Type */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">AI Model Generator</label>
+                <select
+                  value={editingPrompt.aiModel}
+                  onChange={(e) => setEditingPrompt({ ...editingPrompt, aiModel: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
+                >
+                  <option value="Midjourney v6">Midjourney v6</option>
+                  <option value="Midjourney">Midjourney</option>
+                  <option value="Flux 1.1 Pro">Flux 1.1 Pro</option>
+                  <option value="Flux Dev">Flux Dev</option>
+                  <option value="DALL-E 3">DALL-E 3</option>
+                  <option value="Stable Diffusion XL">Stable Diffusion XL</option>
+                  <option value="Runway Gen-3">Runway Gen-3</option>
+                  <option value="Luma Dream Machine">Luma Dream Machine</option>
+                  <option value="Sora">Sora</option>
+                  <option value="Kling AI">Kling AI</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Kategoriya</label>
+                <select
+                  value={editingPrompt.categorySlug}
+                  onChange={(e) => setEditingPrompt({ ...editingPrompt, categorySlug: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
+                >
+                  <option value="3d-render">3D & Render</option>
+                  <option value="fotorealizm">Fotorealizm</option>
+                  <option value="portret-insonlar">Portret & Insonlar</option>
+                  <option value="fantastika-scifi">Fantastika & Sci-Fi</option>
+                  <option value="kiberpank-neon">Kiberpank & Neon</option>
+                  <option value="tabiat-landshaft">Tabiat & Landshaft</option>
+                  <option value="anime-sanat">Anime & San'at</option>
+                  <option value="memorchilik-bino">Me'morchilik & Bino</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Aspect Ratio (Nisbat)</label>
+                <select
+                  value={editingPrompt.aspectRatio}
+                  onChange={(e) => setEditingPrompt({ ...editingPrompt, aspectRatio: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
+                >
+                  <option value="16:9">16:9 (Landscape)</option>
+                  <option value="9:16">9:16 (Portrait / Reels / Story)</option>
+                  <option value="1:1">1:1 (Square)</option>
+                  <option value="4:3">4:3 (Standard)</option>
+                  <option value="3:4">3:4 (Tall)</option>
+                  <option value="21:9">21:9 (Ultrawide)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Media Turi (Type)</label>
+                <select
+                  value={editingPrompt.contentType}
+                  onChange={(e) => setEditingPrompt({ ...editingPrompt, contentType: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
+                >
+                  <option value="PHOTO">Rasm (PHOTO)</option>
+                  <option value="VIDEO">Video (VIDEO)</option>
+                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-cyan-400 mb-1 flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5" /> Total Views
-                </label>
-                <input
-                  type="number"
-                  value={editingPrompt.viewCount}
-                  onChange={(e) =>
-                    setEditingPrompt({ ...editingPrompt, viewCount: parseInt(e.target.value) || 0 })
-                  }
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-purple-400 mb-1 flex items-center gap-1">
-                  <Flame className="w-3.5 h-3.5 text-orange-400" /> Total Copies
-                </label>
-                <input
-                  type="number"
-                  value={editingPrompt.copyCount}
-                  onChange={(e) =>
-                    setEditingPrompt({ ...editingPrompt, copyCount: parseInt(e.target.value) || 0 })
-                  }
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
-                />
+            {/* Prompt Text Textarea */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Prompt Matni (Prompt Text)</label>
+              <textarea
+                rows={4}
+                value={editingPrompt.promptText}
+                onChange={(e) => setEditingPrompt({ ...editingPrompt, promptText: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-purple-500 leading-relaxed"
+                placeholder="Prompt matnini kiriting..."
+              />
+            </div>
+
+            {/* Negative Prompt Textarea */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Salbiy Prompt (Negative Prompt - Ixtiyoriy)</label>
+              <textarea
+                rows={2}
+                value={editingPrompt.negativePrompt}
+                onChange={(e) => setEditingPrompt({ ...editingPrompt, negativePrompt: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 text-xs font-mono focus:outline-none focus:border-purple-500"
+                placeholder="Negative prompt..."
+              />
+            </div>
+
+            {/* Display Counts Grid */}
+            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-3">
+              <span className="text-[11px] font-bold text-purple-400 uppercase tracking-wider block">Ommaviy Statistika Ko'rsatkichlari (Display Metrics)</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-cyan-400 mb-1 flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5" /> Jami Ko'rishlar Sonı
+                  </label>
+                  <input
+                    type="number"
+                    value={editingPrompt.viewCount}
+                    onChange={(e) =>
+                      setEditingPrompt({ ...editingPrompt, viewCount: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-purple-400 mb-1 flex items-center gap-1">
+                    <Flame className="w-3.5 h-3.5 text-orange-400" /> Jami Nusxalashlar Sonı
+                  </label>
+                  <input
+                    type="number"
+                    value={editingPrompt.copyCount}
+                    onChange={(e) =>
+                      setEditingPrompt({ ...editingPrompt, copyCount: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-sm focus:outline-none focus:border-purple-500"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
               <button
                 onClick={() => setEditingPrompt(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
               >
-                Cancel
+                Bekor Qilish
               </button>
               <button
                 onClick={handleSaveMetrics}
                 disabled={isSaving}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-lg shadow-purple-600/30"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-lg shadow-purple-600/30 transition active:scale-95"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>Save Changes</span>
+                <span>O'zgarishlarni Saqlash</span>
               </button>
             </div>
           </div>
@@ -836,7 +974,13 @@ export default function DashboardPage() {
                     setAnalyzingPrompt(null);
                     setEditingPrompt({
                       id: pToEdit.id,
-                      title: pToEdit.title,
+                      title: pToEdit.title || '',
+                      promptText: pToEdit.promptText || '',
+                      negativePrompt: pToEdit.negativePrompt || '',
+                      aiModel: pToEdit.aiModel || 'Midjourney v6',
+                      aspectRatio: pToEdit.aspectRatio || '16:9',
+                      categorySlug: pToEdit.category?.slug || pToEdit.categorySlug || '3d-render',
+                      contentType: pToEdit.contentType || 'PHOTO',
                       viewCount: pToEdit.displayViewCount ?? pToEdit.viewCount ?? 0,
                       copyCount: pToEdit.displayCopyCount ?? pToEdit.copyCount ?? 0,
                     });
@@ -844,7 +988,7 @@ export default function DashboardPage() {
                   className="px-4 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-purple-600/30"
                 >
                   <Edit3 className="w-4 h-4" />
-                  <span>Statistikasini O'zgartirish</span>
+                  <span>Promptni Tahrirlash</span>
                 </button>
               </div>
             </div>
