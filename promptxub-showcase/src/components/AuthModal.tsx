@@ -19,20 +19,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const handleOAuthLogin = (provider: 'google' | 'apple') => {
     setLoadingProvider(provider);
     
-    // Perform OAuth sign-in flow (or trigger NextAuth / custom handler)
+    if (provider === 'google') {
+      const clientId = '446170911640-jiu8auha60mj2ismrcd6ajd9j2r3ip7.apps.googleusercontent.com';
+      const redirectUri = typeof window !== 'undefined' && window.location.origin.includes('localhost')
+        ? `${window.location.origin}/auth/google/callback`
+        : 'https://prompt-xub.vercel.app/auth/google/callback';
+      
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=profile%20email&prompt=select_account`;
+      
+      window.location.href = googleAuthUrl;
+      return;
+    }
+
+    // Fallback for demo Apple provider
     setTimeout(() => {
       setLoadingProvider(null);
       const mockUser = {
         id: `usr_${provider}_${Date.now()}`,
-        name: provider === 'google' ? 'Alex Rivera (Google)' : 'Alex Rivera (Apple)',
+        name: 'Alex Rivera (Apple)',
         email: `alex.${provider}@promptxub.uz`,
-        image: provider === 'google' 
-          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' 
-          : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
         provider,
       };
       onSuccess(mockUser);
-    }, 1200);
+    }, 1000);
   };
 
   const handleEmailSubmit = (e: React.FormEvent) => {
