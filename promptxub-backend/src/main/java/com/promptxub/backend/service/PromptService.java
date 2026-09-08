@@ -51,6 +51,16 @@ public class PromptService {
                                          String tagsStr,
                                          Long displayCopyCount,
                                          Long displayViewCount) {
+        if (title == null || title.isBlank()) {
+            title = "Untitled AI Prompt";
+        }
+        if (promptText == null || promptText.isBlank()) {
+            promptText = title;
+        }
+        if (aiModel == null || aiModel.isBlank()) {
+            aiModel = "Midjourney v6";
+        }
+
         ContentType type = ContentType.PHOTO;
         if (contentTypeStr != null && contentTypeStr.equalsIgnoreCase("VIDEO")) {
             type = ContentType.VIDEO;
@@ -72,7 +82,7 @@ public class PromptService {
                     width = uploadRes.getWidth();
                     height = uploadRes.getHeight();
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.warn("Media upload failed, using fallback URL: {}", ex.getMessage());
             }
         }
@@ -81,6 +91,9 @@ public class PromptService {
         if (categorySlug != null && !categorySlug.isBlank()) {
             category = categoryRepository.findBySlug(categorySlug).orElse(null);
         }
+        if (category == null) {
+            category = categoryRepository.findAll().stream().findFirst().orElse(null);
+        }
 
         Set<Tag> tagSet = new HashSet<>();
         if (tagsStr != null && !tagsStr.isBlank()) {
@@ -88,9 +101,11 @@ public class PromptService {
             for (String t : split) {
                 String clean = t.trim().toLowerCase().replace("#", "");
                 if (!clean.isEmpty()) {
-                    Tag tag = tagRepository.findBySlug(clean)
-                            .orElseGet(() -> tagRepository.save(Tag.builder().name(clean).slug(clean).build()));
-                    tagSet.add(tag);
+                    try {
+                        Tag tag = tagRepository.findBySlug(clean)
+                                .orElseGet(() -> tagRepository.save(Tag.builder().name(clean).slug(clean).build()));
+                        tagSet.add(tag);
+                    } catch (Throwable ignored) {}
                 }
             }
         }
@@ -115,6 +130,8 @@ public class PromptService {
                 .isActive(true)
                 .category(category)
                 .tags(tagSet)
+                .createdAt(java.time.Instant.now())
+                .updatedAt(java.time.Instant.now())
                 .build();
 
         return promptRepository.save(prompt);

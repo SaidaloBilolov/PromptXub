@@ -196,11 +196,11 @@ public class PromptAdminController {
     @PostMapping(value = "/admin/prompts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPrompt(
             @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file,
-            @RequestParam("title") String title,
-            @RequestParam("promptText") String promptText,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "promptText", required = false) String promptText,
             @RequestParam(value = "negativePrompt", required = false) String negativePrompt,
-            @RequestParam("aiModel") String aiModel,
-            @RequestParam("contentType") String contentType,
+            @RequestParam(value = "aiModel", required = false) String aiModel,
+            @RequestParam(value = "contentType", required = false) String contentType,
             @RequestParam(value = "aspectRatio", required = false) String aspectRatio,
             @RequestParam(value = "categorySlug", required = false) String categorySlug,
             @RequestParam(value = "tags", required = false) String tags,
