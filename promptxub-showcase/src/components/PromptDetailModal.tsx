@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, Sparkles, Sliders, Download, Eye, Flame } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Sliders, Download, Eye, Flame, Bookmark } from 'lucide-react';
 import { Prompt } from '@/types';
 import { incrementCopyCount, incrementViewCount } from '@/lib/api';
 import { formatCompactNumber } from '@/lib/utils';
 import { ShareButton } from './ShareButton';
 import { getOptimizedMediaUrl } from '@/lib/imagekit';
+import { isPromptSaved, toggleSavePrompt, recordUserCopy, getActiveUser } from '@/lib/userStore';
 
 interface PromptDetailModalProps {
   prompt: Prompt | null;
@@ -23,6 +24,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [copiedNegative, setCopiedNegative] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [localViews, setLocalViews] = useState<number>(0);
   const [localCopies, setLocalCopies] = useState<number>(0);
 
@@ -62,7 +64,24 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 
       const sMatch = prompt.promptText.match(/--(?:s|stylize)\s+([0-9]+)/i);
       setSelectedStylize(sMatch ? sMatch[1] : null);
+
+      const activeUser = getActiveUser();
+      setSaved(isPromptSaved(activeUser, prompt.id));
     }
+  }, [prompt]);
+
+  useEffect(() => {
+    if (!prompt) return;
+    const checkSaved = () => {
+      const activeUser = getActiveUser();
+      setSaved(isPromptSaved(activeUser, prompt.id));
+    };
+    window.addEventListener('promptxub_library_updated', checkSaved);
+    window.addEventListener('storage', checkSaved);
+    return () => {
+      window.removeEventListener('promptxub_library_updated', checkSaved);
+      window.removeEventListener('storage', checkSaved);
+    };
   }, [prompt]);
 
   if (!prompt) return null;
@@ -115,6 +134,11 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
       setCopied(true);
       const newCopies = localCopies + 1;
       setLocalCopies(newCopies);
+
+      // Track copy in user's personal dashboard
+      const activeUser = getActiveUser();
+      recordUserCopy(activeUser, prompt.id);
+
       incrementCopyCount(prompt.id);
       if (onUpdateMetrics) {
         onUpdateMetrics(prompt.id, localViews, newCopies);
@@ -123,6 +147,17 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleToggleSave = () => {
+    const activeUser = getActiveUser();
+    const isNowSaved = toggleSavePrompt(activeUser, prompt);
+    setSaved(isNowSaved);
+    if (isNowSaved) {
+      onShowToast(`Saved "${prompt.title.substring(0, 22)}..." to your library! 🔖`);
+    } else {
+      onShowToast(`Removed from your library`);
     }
   };
 
@@ -210,13 +245,29 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                 )}
               </div>
 
-              <ShareButton
-                promptId={prompt.id}
-                title={prompt.title}
-                promptText={customPromptText || prompt.promptText}
-                variant="modal"
-                onShowToast={onShowToast}
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleSave}
+                  title={saved ? 'Remove from Saved Prompts' : 'Save prompt to your library'}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition active:scale-95 cursor-pointer ${
+                    saved
+                      ? 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-600/30'
+                      : 'bg-slate-900/90 text-slate-300 hover:text-white border-slate-700/80 hover:bg-slate-800'
+                  }`}
+                >
+                  <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-current text-white' : ''}`} />
+                  <span>{saved ? 'Saved' : 'Save'}</span>
+                </button>
+
+                <ShareButton
+                  promptId={prompt.id}
+                  title={prompt.title}
+                  promptText={customPromptText || prompt.promptText}
+                  variant="modal"
+                  onShowToast={onShowToast}
+                />
+              </div>
             </div>
             <h2 className="text-lg sm:text-2xl font-bold text-white tracking-tight">{prompt.title}</h2>
           </div>
@@ -386,31 +437,58 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           </div>
 
           {/* Desktop Bottom Action */}
-          <div className="hidden md:block pt-4">
+          <div className="hidden md:flex items-center gap-3 pt-4">
             <button
               onClick={handleCopyPrompt}
-              className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white hover:opacity-95 shadow-xl shadow-purple-600/30 flex items-center justify-center gap-2 transition active:scale-[0.99]"
+              className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white hover:opacity-95 shadow-xl shadow-purple-600/30 flex items-center justify-center gap-2 transition active:scale-[0.99] cursor-pointer"
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Prompt Copied to Clipboard!' : '1-Click Copy Full Prompt'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleToggleSave}
+              title={saved ? 'Remove from Saved' : 'Save to Library'}
+              className={`py-3.5 px-5 rounded-xl font-bold text-sm border flex items-center gap-2 transition active:scale-95 cursor-pointer shrink-0 ${
+                saved
+                  ? 'bg-purple-600 text-white border-purple-400 shadow-lg shadow-purple-600/30'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700/80'
+              }`}
+            >
+              <Bookmark className={`w-4 h-4 ${saved ? 'fill-current text-white' : ''}`} />
+              <span>{saved ? 'Saved' : 'Save'}</span>
             </button>
           </div>
 
         </div>
 
         {/* Mobile Floating Sticky Bottom Close & Action Bar */}
-        <div className="sticky bottom-0 inset-x-0 p-3.5 bg-[#0F172A]/95 backdrop-blur-md border-t border-slate-800/80 md:hidden z-40 flex items-center justify-between gap-3 shrink-0">
+        <div className="sticky bottom-0 inset-x-0 p-3.5 bg-[#0F172A]/95 backdrop-blur-md border-t border-slate-800/80 md:hidden z-40 flex items-center justify-between gap-2.5 shrink-0">
           <button
             onClick={handleCopyPrompt}
-            className="flex-1 py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 active:scale-95"
+            className="flex-1 py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center gap-1.5 shadow-lg shadow-purple-600/30 active:scale-95"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             <span>{copied ? 'Copied!' : 'Copy Prompt'}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={handleToggleSave}
+            className={`py-3 px-3.5 rounded-xl font-bold text-xs border flex items-center justify-center gap-1.5 active:scale-95 shadow-md shrink-0 ${
+              saved
+                ? 'bg-purple-600 text-white border-purple-400 shadow-purple-600/30'
+                : 'bg-slate-900 text-slate-200 border-slate-700'
+            }`}
+          >
+            <Bookmark className={`w-4 h-4 ${saved ? 'fill-current text-white' : ''}`} />
+            <span>{saved ? 'Saved' : 'Save'}</span>
+          </button>
           
           <button
             onClick={onClose}
-            className="py-3 px-5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5 active:scale-95 shadow-md shrink-0"
+            className="py-3 px-4 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5 active:scale-95 shadow-md shrink-0"
           >
             <X className="w-4 h-4" />
             <span>Close</span>

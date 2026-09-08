@@ -75,56 +75,62 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* User Auth Controls */}
         <div className="flex items-center gap-3">
           {isAuthenticated && user ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition text-slate-200 active:scale-95 shadow-md"
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-500/30 text-xs font-semibold text-purple-300 hover:text-white transition shadow-sm"
               >
-                {user.image ? (
-                  <img
-                    src={user.image}
-                    alt={user.name || 'User Avatar'}
-                    className="w-7 h-7 rounded-full object-cover border border-purple-500/50"
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 flex items-center justify-center font-bold text-xs text-white">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                )}
-                <span className="text-xs font-semibold max-w-[100px] truncate hidden sm:inline-block text-slate-100">
-                  {user.name || 'Creator'}
-                </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+                <Bookmark className="w-3.5 h-3.5 text-purple-400" />
+                <span>My Library</span>
+              </Link>
 
-              {/* Dropdown Menu */}
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-[#0F172A] border border-slate-700/90 shadow-2xl p-2 z-50 animate-fadeIn space-y-1">
-                  <div className="px-3 py-2 border-b border-slate-800/80">
-                    <p className="text-xs font-bold text-slate-100 truncate">{user.name || 'Creator'}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{user.email || 'user@promptxub.uz'}</p>
-                  </div>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 transition text-slate-200 active:scale-95 shadow-md cursor-pointer"
+                >
+                  {user.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name || 'User Avatar'}
+                      className="w-7 h-7 rounded-full object-cover border border-purple-500/50"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-600 to-cyan-500 flex items-center justify-center font-bold text-xs text-white">
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  )}
+                  <span className="text-xs font-semibold max-w-[100px] truncate hidden sm:inline-block text-slate-100">
+                    {user.name || 'Creator'}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-                  <button
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      if (onOpenAuth) onOpenAuth();
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
-                  >
-                    <Bookmark className="w-4 h-4 text-purple-400" />
-                    <span>Saved Prompts</span>
-                  </button>
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0F172A] border border-slate-700/90 shadow-2xl p-2 z-50 animate-fadeIn space-y-1">
+                    <div className="px-3 py-2 border-b border-slate-800/80">
+                      <p className="text-xs font-bold text-slate-100 truncate">{user.name || 'Creator'}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{user.email || 'user@promptxub.uz'}</p>
+                    </div>
 
-                  <button
-                    onClick={() => {
-                      setDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
-                  >
-                    <UserCheck className="w-4 h-4 text-cyan-400" />
-                    <span>Profile & Settings</span>
-                  </button>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                    >
+                      <Bookmark className="w-4 h-4 text-purple-400" />
+                      <span>Saved Prompts & Dashboard</span>
+                    </Link>
+
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                    >
+                      <UserCheck className="w-4 h-4 text-cyan-400" />
+                      <span>Profile & Settings</span>
+                    </Link>
 
                   <div className="border-t border-slate-800/80 pt-1">
                     <button
@@ -141,7 +147,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
             </div>
-          ) : (
+          </>
+        ) : (
             <button
               onClick={onOpenAuth}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 text-white transition flex items-center gap-2 shadow-lg shadow-purple-600/30 active:scale-95 cursor-pointer"

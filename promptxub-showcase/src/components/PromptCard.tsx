@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Copy, Check, Video, Eye, Sparkles, Flame } from 'lucide-react';
+import { Copy, Check, Video, Eye, Sparkles, Flame, Bookmark } from 'lucide-react';
 import { Prompt } from '@/types';
 import { formatCompactNumber } from '@/lib/utils';
 import { incrementCopyCount } from '@/lib/api';
 import { ShareButton } from './ShareButton';
 import { getOptimizedMediaUrl } from '@/lib/imagekit';
+import { isPromptSaved, toggleSavePrompt, recordUserCopy, getActiveUser } from '@/lib/userStore';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -21,7 +22,25 @@ export const PromptCard: React.FC<PromptCardProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [localCopies, setLocalCopies] = useState(prompt.copyCount);
+  const [saved, setSaved] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Sync bookmark state with userStore
+  useEffect(() => {
+    const checkSaved = () => {
+      const activeUser = getActiveUser();
+      setSaved(isPromptSaved(activeUser, prompt.id));
+    };
+
+    checkSaved();
+    window.addEventListener('promptxub_library_updated', checkSaved);
+    window.addEventListener('storage', checkSaved);
+
+    return () => {
+      window.removeEventListener('promptxub_library_updated', checkSaved);
+      window.removeEventListener('storage', checkSaved);
+    };
+  }, [prompt.id]);
 
   // IntersectionObserver for smart lazy video playback
   useEffect(() => {
@@ -56,6 +75,10 @@ export const PromptCard: React.FC<PromptCardProps> = ({
       setLocalCopies((prev) => prev + 1);
       onShowToast(`Copied prompt: "${prompt.title.substring(0, 24)}..."`);
 
+      // Track user personal copies in library
+      const activeUser = getActiveUser();
+      recordUserCopy(activeUser, prompt.id);
+
       // Non-blocking background analytics tracking
       incrementCopyCount(prompt.id);
 
@@ -64,6 +87,18 @@ export const PromptCard: React.FC<PromptCardProps> = ({
       }, 2000);
     } catch (err) {
       console.error('Clipboard copy error', err);
+    }
+  };
+
+  const handleToggleSave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const activeUser = getActiveUser();
+    const isNowSaved = toggleSavePrompt(activeUser, prompt);
+    setSaved(isNowSaved);
+    if (isNowSaved) {
+      onShowToast(`Saved "${prompt.title.substring(0, 22)}..." to your library! 🔖`);
+    } else {
+      onShowToast(`Removed from your library`);
     }
   };
 
@@ -111,7 +146,18 @@ export const PromptCard: React.FC<PromptCardProps> = ({
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+          <button
+            onClick={handleToggleSave}
+            title={saved ? 'Remove from Saved Prompts' : 'Save to My Library'}
+            className={`p-1.5 rounded-xl backdrop-blur-md border transition-all duration-200 active:scale-90 cursor-pointer ${
+              saved
+                ? 'bg-purple-600 text-white border-purple-400 shadow-lg shadow-purple-600/50'
+                : 'bg-slate-950/80 text-slate-300 hover:text-white hover:bg-slate-900 border-slate-700/60'
+            }`}
+          >
+            <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-current text-white' : ''}`} />
+          </button>
           <span
             className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border backdrop-blur-md ${getModelBadgeColor(
               prompt.aiModel

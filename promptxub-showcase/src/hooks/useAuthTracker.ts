@@ -26,10 +26,18 @@ export function useAuthTracker() {
   // Load activity from localStorage on mount
   useEffect(() => {
     try {
+      const storedUser = localStorage.getItem('promptxub_user') || localStorage.getItem('promptxub_active_user_session');
       const stored = localStorage.getItem(STORAGE_KEY);
+      let parsed: Partial<UserActivity> = {};
       if (stored) {
-        setActivity(JSON.parse(stored));
+        parsed = JSON.parse(stored);
       }
+      setActivity({
+        totalInteractions: parsed.totalInteractions || 0,
+        copyCount: parsed.copyCount || 0,
+        lastDismissedAt: parsed.lastDismissedAt || 0,
+        isAuthenticated: !!storedUser || !!parsed.isAuthenticated,
+      });
     } catch (e) {
       console.error('Failed to load user activity from storage', e);
     }

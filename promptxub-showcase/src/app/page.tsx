@@ -13,15 +13,7 @@ import { fetchPrompts } from '@/lib/api';
 import { useAuthTracker } from '@/hooks/useAuthTracker';
 import { Sparkles, Loader2, Frown } from 'lucide-react';
 
-interface UserProfile {
-  id?: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  provider?: string;
-}
-
-const USER_SESSION_KEY = 'promptxub_active_user_session';
+import { getActiveUser, USER_STORAGE_KEY, UserProfile } from '@/lib/userStore';
 
 export default function ShowcasePage() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -43,17 +35,37 @@ export default function ShowcasePage() {
     setAuthenticated,
   } = useAuthTracker();
 
-  // Load stored user session on mount
+  // Load stored user session on mount & listen to updates
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem(USER_SESSION_KEY);
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        setAuthenticated(true);
+    const syncUser = () => {
+      try {
+        const storedUser = getActiveUser();
+        if (storedUser) {
+          setUser(storedUser);
+          setAuthenticated(true);
+        } else {
+          // Check fallback legacy key if any
+          const legacy = localStorage.getItem('promptxub_active_user_session');
+          if (legacy) {
+            const parsed = JSON.parse(legacy);
+            setUser(parsed);
+            setAuthenticated(true);
+            localStorage.setItem(USER_STORAGE_KEY, legacy);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load user session', e);
       }
-    } catch (e) {
-      console.error('Failed to load user session', e);
-    }
+    };
+
+    syncUser();
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('promptxub_library_updated', syncUser);
+
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('promptxub_library_updated', syncUser);
+    };
   }, [setAuthenticated]);
 
   useEffect(() => {
@@ -111,7 +123,8 @@ export default function ShowcasePage() {
     setAuthenticated(true);
     setManualAuthOpen(false);
     try {
-      localStorage.setItem(USER_SESSION_KEY, JSON.stringify(activeUser));
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(activeUser));
+      window.dispatchEvent(new CustomEvent('promptxub_library_updated'));
     } catch (e) {
       console.error(e);
     }
@@ -122,7 +135,10 @@ export default function ShowcasePage() {
     setUser(null);
     setAuthenticated(false);
     try {
-      localStorage.removeItem(USER_SESSION_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+      localStorage.removeItem('promptxub_active_user_session');
+      document.cookie = 'promptxub_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      window.dispatchEvent(new CustomEvent('promptxub_library_updated'));
     } catch (e) {
       console.error(e);
     }
