@@ -10,6 +10,8 @@ import com.promptxub.backend.repository.PromptRepository;
 import com.promptxub.backend.repository.SearchLogRepository;
 import com.promptxub.backend.repository.UserRepository;
 import com.promptxub.backend.service.PromptService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1")
 public class PromptAdminController {
+
+    private static final Logger log = LoggerFactory.getLogger(PromptAdminController.class);
 
     private final PromptService promptService;
     private final DailyAnalyticsRepository dailyAnalyticsRepository;
