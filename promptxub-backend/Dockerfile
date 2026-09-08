@@ -7,11 +7,11 @@ WORKDIR /build
 
 # Cache dependencies first
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:resolve -B
 
 # Copy source code and build executable jar
 COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN mvn package -DskipTests -B
 
 # ===================================================================
 # STAGE 2: Lightweight Production Runtime Container (Java 17 JRE)

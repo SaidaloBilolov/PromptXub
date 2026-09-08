@@ -7,11 +7,11 @@ WORKDIR /build
 
 # Cache dependencies first
 COPY promptxub-backend/pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:resolve -B
 
 # Copy backend source code and build executable jar
 COPY promptxub-backend/src ./src
-RUN mvn clean package -DskipTests -B
+RUN mvn package -DskipTests -B
 
 # ===================================================================
 # STAGE 2: Lightweight Production Runtime Container (Java 21 JRE)
