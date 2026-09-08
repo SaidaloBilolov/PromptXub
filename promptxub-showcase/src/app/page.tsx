@@ -228,15 +228,84 @@ export default function ShowcasePage() {
       {/* Floating Toast Notification */}
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/60 py-8 px-4 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span className="font-bold text-slate-200">PromptXub</span>
-            <span>— The Generative AI Prompt Showcase & Discovery Platform</span>
+      {/* Rich Footer */}
+      <footer className="border-t border-slate-800/80 bg-slate-950/80 pt-12 pb-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-400 mt-auto">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            
+            {/* Brand Info */}
+            <div className="space-y-3 md:col-span-1">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-400 p-[1px]">
+                  <div className="h-full w-full bg-[#0F172A] rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                  </div>
+                </div>
+                <span className="text-lg font-black text-white tracking-tight">
+                  Prompt<span className="text-cyan-400">Xub</span>
+                </span>
+              </div>
+              <p className="text-slate-400 leading-relaxed text-[11px]">
+                The premier Generative AI prompt engine & visual showcase platform. Explore, copy, and innovate with photorealistic and cinematic AI prompts.
+              </p>
+            </div>
+
+            {/* AI Generators */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">AI Generators</h4>
+              <ul className="space-y-1.5 text-[11px] text-slate-400">
+                <li className="hover:text-purple-400 transition cursor-pointer">Midjourney v6 & v5.2</li>
+                <li className="hover:text-purple-400 transition cursor-pointer">Flux.1 Pro & Dev</li>
+                <li className="hover:text-purple-400 transition cursor-pointer">Runway Gen-3 Alpha</li>
+                <li className="hover:text-purple-400 transition cursor-pointer">Luma Dream Machine</li>
+                <li className="hover:text-purple-400 transition cursor-pointer">DALL-E 3 & SDXL</li>
+              </ul>
+            </div>
+
+            {/* Prompt Categories */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Categories</h4>
+              <ul className="space-y-1.5 text-[11px] text-slate-400">
+                <li className="hover:text-cyan-400 transition cursor-pointer">Photorealistic Portraits</li>
+                <li className="hover:text-cyan-400 transition cursor-pointer">Cinematic Lighting & Film</li>
+                <li className="hover:text-cyan-400 transition cursor-pointer">3D & CGI Renders</li>
+                <li className="hover:text-cyan-400 transition cursor-pointer">Cyberpunk & Neon Aesthetics</li>
+                <li className="hover:text-cyan-400 transition cursor-pointer">Modern Architecture & Interiors</li>
+              </ul>
+            </div>
+
+            {/* Platform Features */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Platform Features</h4>
+              <ul className="space-y-1.5 text-[11px] text-slate-400">
+                <li className="hover:text-white transition cursor-pointer flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 1-Click Prompt Copy
+                </li>
+                <li className="hover:text-white transition cursor-pointer flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> High-Res ImageKit CDN
+                </li>
+                <li className="hover:text-white transition cursor-pointer flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Real-time Tracked Analytics
+                </li>
+                <li className="hover:text-white transition cursor-pointer flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span> AI Video & Motion Prompts
+                </li>
+              </ul>
+            </div>
+
           </div>
-          <p className="text-slate-400">Built for $0 infrastructure budget with Next.js 14, Neon & ImageKit.</p>
+
+          {/* Bottom Bar */}
+          <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+            <p>© {new Date().getFullYear()} PromptXub. Designed for AI Creators & Prompt Engineers worldwide.</p>
+            <div className="flex items-center gap-4">
+              <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Systems Operational
+              </span>
+              <span className="hover:text-slate-300 transition cursor-pointer">Privacy</span>
+              <span className="hover:text-slate-300 transition cursor-pointer">Terms</span>
+            </div>
+          </div>
         </div>
       </footer>
     </main>
