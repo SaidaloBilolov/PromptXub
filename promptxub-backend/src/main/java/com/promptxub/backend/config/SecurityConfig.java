@@ -81,7 +81,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/public/**").permitAll()
                         .requestMatchers("/api/v1/ai/**").permitAll()
                         .requestMatchers("/api/v1/prompts/track").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/prompts/track", "/api/v1/prompts/*/copy", "/api/v1/prompts/**/copy").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/prompts/track", "/api/v1/prompts/*/copy", "/api/v1/public/prompts/*/copy", "/api/v1/public/prompts/*/view").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/prompts", "/api/v1/prompts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/media", "/api/v1/media/**").permitAll()
