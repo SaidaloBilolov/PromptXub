@@ -711,7 +711,7 @@ export default function DashboardPage() {
                 <label className="block text-xs font-bold text-slate-300 mb-1">AI Model Generator</label>
                 <div className="space-y-1.5">
                   <select
-                    value={['Midjourney v6', 'Midjourney', 'Flux 1.1 Pro', 'Flux Dev', 'DALL-E 3', 'Stable Diffusion XL', 'Runway Gen-3', 'Luma Dream Machine', 'Sora', 'Kling AI'].includes(editingPrompt.aiModel) ? editingPrompt.aiModel : '__CUSTOM__'}
+                    value={['Nano Banana (Gemeni Ai)', 'ChatGPT Image', 'Midjourney v6', 'Midjourney', 'Flux 1.1 Pro', 'Flux Dev', 'DALL-E 3', 'Stable Diffusion XL', 'Runway Gen-3', 'Luma Dream Machine', 'Sora', 'Kling AI'].includes(editingPrompt.aiModel) ? editingPrompt.aiModel : '__CUSTOM__'}
                     onChange={(e) => {
                       if (e.target.value !== '__CUSTOM__') {
                         setEditingPrompt({ ...editingPrompt, aiModel: e.target.value });
@@ -719,6 +719,8 @@ export default function DashboardPage() {
                     }}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium focus:outline-none focus:border-purple-500"
                   >
+                    <option value="Nano Banana (Gemeni Ai)">Nano Banana (Gemeni Ai)</option>
+                    <option value="ChatGPT Image">ChatGPT Image</option>
                     <option value="Midjourney v6">Midjourney v6</option>
                     <option value="Midjourney">Midjourney</option>
                     <option value="Flux 1.1 Pro">Flux 1.1 Pro</option>
@@ -732,7 +734,7 @@ export default function DashboardPage() {
                     <option value="__CUSTOM__">✍️ + Custom / Yozib qo'shish...</option>
                   </select>
 
-                  {(!['Midjourney v6', 'Midjourney', 'Flux 1.1 Pro', 'Flux Dev', 'DALL-E 3', 'Stable Diffusion XL', 'Runway Gen-3', 'Luma Dream Machine', 'Sora', 'Kling AI'].includes(editingPrompt.aiModel) || editingPrompt.aiModel === '') && (
+                  {(!['Nano Banana (Gemeni Ai)', 'ChatGPT Image', 'Midjourney v6', 'Midjourney', 'Flux 1.1 Pro', 'Flux Dev', 'DALL-E 3', 'Stable Diffusion XL', 'Runway Gen-3', 'Luma Dream Machine', 'Sora', 'Kling AI'].includes(editingPrompt.aiModel) || editingPrompt.aiModel === '') && (
                     <input
                       type="text"
                       value={editingPrompt.aiModel}

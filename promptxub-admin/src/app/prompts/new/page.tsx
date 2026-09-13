@@ -52,6 +52,8 @@ export default function NewPromptPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const aiModels = [
+    'Nano Banana (Gemeni Ai)',
+    'ChatGPT Image',
     'Midjourney v6',
     'Flux.1 Dev',
     'Flux.1 Schnell',

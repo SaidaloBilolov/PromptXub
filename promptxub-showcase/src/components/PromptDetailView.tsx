@@ -130,10 +130,13 @@ export const PromptDetailView: React.FC<PromptDetailViewProps> = ({
 
   // Color badge depending on AI Model
   const getModelBadgeColor = (model: string) => {
-    if (model.toLowerCase().includes('midjourney')) return 'bg-purple-950/80 text-purple-300 border-purple-800';
-    if (model.toLowerCase().includes('flux')) return 'bg-cyan-950/80 text-cyan-300 border-cyan-800';
-    if (model.toLowerCase().includes('runway')) return 'bg-pink-950/80 text-pink-300 border-pink-800';
-    if (model.toLowerCase().includes('luma')) return 'bg-amber-950/80 text-amber-300 border-amber-800';
+    const m = (model || '').toLowerCase();
+    if (m.includes('banana') || m.includes('gemen') || m.includes('gemini')) return 'bg-amber-950/90 text-amber-300 border-amber-500/80 shadow-sm shadow-amber-500/20';
+    if (m.includes('chatgpt') || m.includes('gpt') || m.includes('dall-e')) return 'bg-emerald-950/90 text-emerald-300 border-emerald-500/80 shadow-sm shadow-emerald-500/20';
+    if (m.includes('midjourney')) return 'bg-purple-950/80 text-purple-300 border-purple-800';
+    if (m.includes('flux')) return 'bg-cyan-950/80 text-cyan-300 border-cyan-800';
+    if (m.includes('runway')) return 'bg-pink-950/80 text-pink-300 border-pink-800';
+    if (m.includes('luma')) return 'bg-amber-950/80 text-amber-300 border-amber-800';
     return 'bg-slate-800 text-slate-300 border-slate-700';
   };
 
