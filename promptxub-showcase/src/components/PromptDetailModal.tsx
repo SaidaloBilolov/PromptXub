@@ -1,9 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, Sparkles, Sliders, Download, Eye, Flame, Bookmark } from 'lucide-react';
+import { 
+  X, 
+  Copy, 
+  Check, 
+  Sparkles, 
+  Sliders, 
+  Download, 
+  Eye, 
+  Flame, 
+  Bookmark, 
+  ChevronDown, 
+  ChevronUp, 
+  Film,
+  ArrowRight
+} from 'lucide-react';
 import { Prompt } from '@/types';
-import { incrementCopyCount, incrementViewCount } from '@/lib/api';
+import { fetchPrompts, incrementCopyCount, incrementViewCount } from '@/lib/api';
 import { formatCompactNumber } from '@/lib/utils';
 import { ShareButton } from './ShareButton';
 import { getOptimizedMediaUrl } from '@/lib/imagekit';
@@ -14,6 +28,7 @@ interface PromptDetailModalProps {
   onClose: () => void;
   onShowToast: (msg: string) => void;
   onUpdateMetrics?: (promptId: number, views: number, copies: number) => void;
+  onSelectPrompt?: (prompt: Prompt) => void;
 }
 
 export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
@@ -21,12 +36,20 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
   onClose,
   onShowToast,
   onUpdateMetrics,
+  onSelectPrompt,
 }) => {
   const [copied, setCopied] = useState(false);
   const [copiedNegative, setCopiedNegative] = useState(false);
   const [saved, setSaved] = useState(false);
   const [localViews, setLocalViews] = useState<number>(0);
   const [localCopies, setLocalCopies] = useState<number>(0);
+
+  // Clamped prompt view toggle
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Recommended Prompts inside Modal
+  const [recommendedPrompts, setRecommendedPrompts] = useState<Prompt[]>([]);
+  const [copiedCardId, setCopiedCardId] = useState<number | null>(null);
 
   // Quick Prompt Parameter Variator States
   const [customPromptText, setCustomPromptText] = useState<string>('');
@@ -44,6 +67,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 
   useEffect(() => {
     if (prompt) {
+      setIsExpanded(false);
       const newViews = (prompt.viewCount || 0) + 1;
       const initialCopies = prompt.copyCount || 0;
       setLocalViews(newViews);
@@ -67,6 +91,31 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
 
       const activeUser = getActiveUser();
       setSaved(isPromptSaved(activeUser, prompt.id));
+
+      // Fetch recommended prompts for the modal
+      let isCancelled = false;
+      async function loadRecs() {
+        try {
+          const res = await fetchPrompts({
+            category: prompt?.category?.slug,
+            size: 8,
+            sort: 'trending',
+          });
+          if (!isCancelled) {
+            const filtered = (res.content || [])
+              .filter((p) => p.id.toString() !== prompt?.id.toString())
+              .slice(0, 4);
+            setRecommendedPrompts(filtered);
+          }
+        } catch (err) {
+          console.warn('Error fetching modal recommendations', err);
+        }
+      }
+      loadRecs();
+
+      return () => {
+        isCancelled = true;
+      };
     }
   }, [prompt]);
 
@@ -150,6 +199,20 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
     }
   };
 
+  const handleCardCopy = async (rec: Prompt, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(rec.promptText);
+      setCopiedCardId(rec.id);
+      recordUserCopy(getActiveUser(), rec.id);
+      incrementCopyCount(rec.id);
+      onShowToast('Prompt copied to clipboard!');
+      setTimeout(() => setCopiedCardId(null), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleToggleSave = () => {
     const activeUser = getActiveUser();
     const isNowSaved = toggleSavePrompt(activeUser, prompt);
@@ -172,6 +235,9 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
       console.error(err);
     }
   };
+
+  const currentPromptText = customPromptText || prompt.promptText;
+  const isLongPrompt = currentPromptText.length > 150;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-8 bg-black/85 backdrop-blur-md animate-fadeIn">
@@ -225,8 +291,8 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
           </a>
         </div>
 
-        {/* Right: Details & Prompt Parameters */}
-        <div className="w-full md:w-1/2 p-4 sm:p-6 md:p-8 flex flex-col overflow-y-auto space-y-5 flex-1">
+        {/* Right: Details, Prompt Text, Customizer & Recommended Prompts */}
+        <div className="w-full md:w-1/2 p-4 sm:p-6 md:p-8 flex flex-col overflow-y-auto space-y-5 flex-1 scrollbar-thin scrollbar-thumb-slate-700">
           
           {/* Header & Badges */}
           <div className="pr-10">
@@ -263,7 +329,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                 <ShareButton
                   promptId={prompt.id}
                   title={prompt.title}
-                  promptText={customPromptText || prompt.promptText}
+                  promptText={currentPromptText}
                   variant="modal"
                   onShowToast={onShowToast}
                 />
@@ -290,8 +356,62 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Quick Parameter Variator Controls */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
+          {/* ========================================================================= */}
+          {/* 1. PROMPT COMMAND BOX (TOP - Instant Copying for Users) */}
+          {/* ========================================================================= */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" /> Prompt Command
+              </span>
+              <button
+                onClick={handleCopyPrompt}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white transition active:scale-95 shadow-md shadow-purple-600/30"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Prompt</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Prompt Text Box with Gradient Overlay & Clamping */}
+            <div className="relative">
+              <div
+                className={`p-4 rounded-2xl bg-slate-950/90 border border-purple-900/40 font-mono text-xs sm:text-sm text-slate-100 leading-relaxed select-all transition-all duration-300 ${
+                  !isExpanded && isLongPrompt ? 'max-h-28 overflow-hidden' : ''
+                }`}
+              >
+                {currentPromptText}
+              </div>
+
+              {!isExpanded && isLongPrompt && (
+                <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent pointer-events-none rounded-b-2xl" />
+              )}
+            </div>
+
+            {isLongPrompt && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition py-1 cursor-pointer"
+              >
+                <span>{isExpanded ? 'Show less' : 'Show full prompt'}</span>
+                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            )}
+          </div>
+
+          {/* ========================================================================= */}
+          {/* 2. QUICK PARAMETER CUSTOMIZER (LOWER - Below Prompt Text Box) */}
+          {/* ========================================================================= */}
+          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-3">
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="flex items-center gap-1.5 text-cyan-400">
                 <Sliders className="w-4 h-4" /> Quick Parameter Customizer
@@ -308,7 +428,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                     key={ar}
                     type="button"
                     onClick={() => updateParam('--ar', ar)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${
                       selectedAr === ar
                         ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/30'
                         : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
@@ -329,7 +449,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                     key={v}
                     type="button"
                     onClick={() => updateParam('--v', v)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${
                       selectedVersion === v
                         ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
                         : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
@@ -350,7 +470,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                     key={s}
                     type="button"
                     onClick={() => updateParam('--s', s)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${
                       selectedStylize === s
                         ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30'
                         : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
@@ -363,34 +483,6 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Prompt Text Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> Prompt Command
-              </span>
-              <button
-                onClick={handleCopyPrompt}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition active:scale-95 shadow-md shadow-purple-600/30"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 font-mono text-xs sm:text-sm text-slate-200 leading-relaxed select-all">
-              {customPromptText || prompt.promptText}
-            </div>
-          </div>
-
           {/* Negative Prompt (if present) */}
           {prompt.negativePrompt && (
             <div className="space-y-2">
@@ -400,7 +492,7 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
                 </span>
                 <button
                   onClick={handleCopyNegative}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer"
                 >
                   {copiedNegative ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedNegative ? 'Copied' : 'Copy'}</span>
@@ -435,6 +527,90 @@ export const PromptDetailModal: React.FC<PromptDetailModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* ========================================================================= */}
+          {/* 3. RECOMMENDED PROMPTS SECTION (Inside Modal for User Retention) */}
+          {/* ========================================================================= */}
+          {recommendedPrompts && recommendedPrompts.length > 0 && (
+            <div className="pt-4 border-t border-slate-800/80 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-white flex items-center gap-1.5 tracking-tight">
+                    <Sparkles className="w-4 h-4 text-cyan-400" /> Recommended Prompts
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Explore more trending AI prompts you might like</p>
+                </div>
+              </div>
+
+              {/* 2-Column Responsive Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {recommendedPrompts.map((rec) => {
+                  const isCardCopied = copiedCardId === rec.id;
+                  return (
+                    <div
+                      key={rec.id}
+                      onClick={() => onSelectPrompt && onSelectPrompt(rec)}
+                      className="group bg-slate-900/90 border border-slate-800 hover:border-purple-500/50 rounded-xl overflow-hidden transition duration-200 hover:shadow-lg flex flex-col cursor-pointer"
+                    >
+                      {/* Image Thumbnail */}
+                      <div className="relative w-full aspect-[16/9] bg-slate-950 overflow-hidden">
+                        <img
+                          src={getOptimizedMediaUrl(rec.mediaUrl, { width: 600 })}
+                          alt={rec.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-slate-950/80 text-purple-300 border border-purple-800/60 backdrop-blur-md">
+                          {rec.aiModel}
+                        </span>
+                      </div>
+
+                      {/* Card Content & Copy */}
+                      <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                        <div>
+                          <h4 className="font-bold text-xs text-slate-100 group-hover:text-purple-300 transition line-clamp-1">
+                            {rec.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 font-mono">
+                            {rec.promptText}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                          <span className="text-[10px] text-cyan-400 font-semibold flex items-center gap-1">
+                            <span>Explore prompt</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </span>
+
+                          <button
+                            onClick={(e) => handleCardCopy(rec, e)}
+                            title="Copy Prompt"
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition active:scale-95 ${
+                              isCardCopied
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-purple-600 hover:bg-purple-500 text-white shadow-sm'
+                            }`}
+                          >
+                            {isCardCopied ? (
+                              <>
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                <span>Copy</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Desktop Bottom Action */}
           <div className="hidden md:flex items-center gap-3 pt-4">

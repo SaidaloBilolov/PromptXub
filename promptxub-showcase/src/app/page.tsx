@@ -234,6 +234,7 @@ export default function ShowcasePage() {
         onClose={() => setActiveModalPrompt(null)}
         onShowToast={showToast}
         onUpdateMetrics={handleUpdatePromptMetrics}
+        onSelectPrompt={(p) => setActiveModalPrompt(p)}
       />
 
       {/* Progressive Engagement Soft-Gate & Manual Auth Login Modal */}
