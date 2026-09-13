@@ -138,10 +138,13 @@ public class DataSourceConfig {
         config.setUsername(username);
         config.setPassword(password);
 
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(2);
-        config.setIdleTimeout(30000);
-        config.setMaxLifetime(600000);
+        // Optimized for Neon Serverless PostgreSQL & Render Free Tier
+        config.setMaximumPoolSize(8);
+        config.setMinimumIdle(1);
+        config.setKeepaliveTime(45000); // Send keepalive every 45s to prevent Neon TCP idle disconnect
+        config.setConnectionTestQuery("SELECT 1");
+        config.setIdleTimeout(120000); // 2 minutes idle timeout
+        config.setMaxLifetime(600000); // 10 minutes max lifetime
         config.setConnectionTimeout(30000);
         config.setValidationTimeout(5000);
         config.setInitializationFailTimeout(60000);

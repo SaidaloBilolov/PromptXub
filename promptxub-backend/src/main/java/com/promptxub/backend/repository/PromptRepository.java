@@ -12,9 +12,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PromptRepository extends JpaRepository<Prompt, Long>, JpaSpecificationExecutor<Prompt> {
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
+    Optional<Prompt> findById(Long id);
 
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"category", "tags"})
     Page<Prompt> findByIsActiveTrue(Pageable pageable);

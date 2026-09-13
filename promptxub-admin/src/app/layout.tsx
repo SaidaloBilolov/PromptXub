@@ -19,13 +19,15 @@ export const metadata: Metadata = {
   description: 'Enterprise moderation and content management portal for PromptXub AI Platform',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
-      { url: '/telegram-avatar.jpg', type: 'image/jpeg' },
+      { url: '/circular-logo.png?v=4', type: 'image/png', sizes: '512x512' },
+      { url: '/icon-192.png?v=4', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-32.png?v=4', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon.ico?v=4', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/circular-logo.png?v=4',
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon.png?v=4', sizes: '180x180', type: 'image/png' },
+      { url: '/circular-logo.png?v=4', sizes: '512x512', type: 'image/png' },
     ],
   },
 };
@@ -37,6 +39,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <link rel="icon" type="image/png" href="/circular-logo.png?v=4" sizes="any" />
+        <link rel="apple-touch-icon" href="/circular-logo.png?v=4" />
+        <link rel="shortcut icon" href="/circular-logo.png?v=4" />
+      </head>
       <body className={`${outfit.variable} ${jetbrainsMono.variable} antialiased bg-[#0F172A] text-slate-100 min-h-screen`}>
         {children}
       </body>

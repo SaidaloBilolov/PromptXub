@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { Prompt, Category, PageResponse, ContentType } from '@/types';
 
 function getApiBaseUrl(): string {
@@ -136,7 +137,7 @@ export async function fetchPrompts(params: {
     queryParams.set('size', (params.size || 20).toString());
 
     const res = await fetch(`${API_BASE_URL}/public/prompts?${queryParams.toString()}`, {
-      cache: 'no-store',
+      next: { revalidate: 30 },
     });
 
     if (!res.ok) {
@@ -217,11 +218,16 @@ export function incrementViewCount(promptId: number): void {
   trackAnalyticsEvent(promptId, 'view');
 }
 
-export async function fetchPromptById(id: number | string): Promise<Prompt | null> {
+export const fetchPromptById = cache(async (id: number | string): Promise<Prompt | null> => {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     const res = await fetch(`${API_BASE_URL}/public/prompts/${id}`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       const found = MOCK_PROMPTS.find((p) => p.id.toString() === id.toString());
@@ -234,7 +240,7 @@ export async function fetchPromptById(id: number | string): Promise<Prompt | nul
     const found = MOCK_PROMPTS.find((p) => p.id.toString() === id.toString());
     return found || null;
   }
-}
+});
 
 export interface SmartSearchResponse {
   originalQuery: string;

@@ -11,6 +11,9 @@ interface PageProps {
   params: { id: string };
 }
 
+// Enable Incremental Static Regeneration (ISR): cached at Edge CDN for 60 seconds
+export const revalidate = 60;
+
 // Dynamic OpenGraph / Twitter social media metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const prompt = await fetchPromptById(params.id);
