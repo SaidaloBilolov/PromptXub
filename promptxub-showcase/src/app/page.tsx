@@ -79,6 +79,7 @@ export default function ShowcasePage() {
           sort,
           category: category || undefined,
           search: searchQuery || undefined,
+          size: 1000,
         });
         if (!isCancelled) {
           setPrompts(response.content);

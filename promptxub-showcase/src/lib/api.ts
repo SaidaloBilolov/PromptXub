@@ -134,7 +134,7 @@ export async function fetchPrompts(params: {
     if (params.search) queryParams.set('query', params.search);
     if (params.category) queryParams.set('category', params.category);
     queryParams.set('page', (params.page || 0).toString());
-    queryParams.set('size', (params.size || 20).toString());
+    queryParams.set('size', (params.size || 1000).toString());
 
     const res = await fetch(`${API_BASE_URL}/public/prompts?${queryParams.toString()}`, {
       next: { revalidate: 30 },

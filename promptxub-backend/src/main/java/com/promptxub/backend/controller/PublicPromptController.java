@@ -40,7 +40,7 @@ public class PublicPromptController {
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "1000") int size
     ) {
         try {
             Sort sortOrder = Sort.by(Sort.Direction.DESC, "id");
