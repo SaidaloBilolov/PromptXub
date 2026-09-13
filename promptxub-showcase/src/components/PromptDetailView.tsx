@@ -23,6 +23,7 @@ import { formatCompactNumber } from '@/lib/utils';
 import { incrementCopyCount, incrementViewCount } from '@/lib/api';
 import { ShareButton } from '@/components/ShareButton';
 import { Toast } from '@/components/Toast';
+import { Footer } from '@/components/Footer';
 import { getOptimizedMediaUrl } from '@/lib/imagekit';
 import { isPromptSaved, toggleSavePrompt, recordUserCopy, getActiveUser } from '@/lib/userStore';
 
@@ -517,6 +518,9 @@ export const PromptDetailView: React.FC<PromptDetailViewProps> = ({
           </section>
         )}
       </main>
+
+      {/* Footer */}
+      <Footer />
 
       {/* ========================================================================= */}
       {/* STICKY BOTTOM MOBILE ACTION BAR (English & High Visibility) */}
