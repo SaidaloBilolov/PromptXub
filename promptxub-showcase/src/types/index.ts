@@ -31,6 +31,8 @@ export interface Prompt {
   duration?: number;
   copyCount: number;
   viewCount: number;
+  displayCopyCount?: number;
+  displayViewCount?: number;
   isFeatured: boolean;
   category?: Category;
   tags?: Tag[];

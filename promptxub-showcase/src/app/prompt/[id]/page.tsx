@@ -1,11 +1,11 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { fetchPromptById } from '@/lib/api';
-import { ShareButton } from '@/components/ShareButton';
+import { fetchPromptById, fetchPrompts } from '@/lib/api';
+import { PromptDetailView } from '@/components/PromptDetailView';
 import { getOptimizedMediaUrl } from '@/lib/imagekit';
-import { ArrowLeft, Sparkles, Sliders, Flame, Eye, Copy, Download, Layers, Film, Camera } from 'lucide-react';
-import { formatCompactNumber } from '@/lib/utils';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Prompt } from '@/types';
 
 interface PageProps {
   params: { id: string };
@@ -96,6 +96,33 @@ export default async function PromptDetailPage({ params }: PageProps) {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://promptxub.uz').replace(/\/+$/, '');
   const promptUrl = `${siteUrl}/prompt/${prompt.id}`;
 
+  // Fetch recommended prompts (prioritizing same category, then trending)
+  let recommendedPrompts: Prompt[] = [];
+  try {
+    const recRes = await fetchPrompts({
+      category: prompt.category?.slug,
+      size: 8,
+      sort: 'trending',
+    });
+    recommendedPrompts = (recRes.content || [])
+      .filter((p) => p.id.toString() !== prompt.id.toString())
+      .slice(0, 6);
+
+    // If category has few prompts, backfill with general trending prompts
+    if (recommendedPrompts.length < 4) {
+      const generalRes = await fetchPrompts({
+        size: 8,
+        sort: 'trending',
+      });
+      const extra = (generalRes.content || []).filter(
+        (p) => p.id.toString() !== prompt.id.toString() && !recommendedPrompts.some((r) => r.id === p.id)
+      );
+      recommendedPrompts = [...recommendedPrompts, ...extra].slice(0, 6);
+    }
+  } catch (err) {
+    console.warn('Error fetching recommendations for prompt detail page', err);
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': ['CreativeWork', prompt.contentType === 'VIDEO' ? 'VideoObject' : 'ImageObject'],
@@ -127,173 +154,19 @@ export default async function PromptDetailPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-slate-100 selection:bg-purple-500 selection:text-white flex flex-col">
+    <>
       {/* Schema.org JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Header Bar */}
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0F172A]/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white transition group"
-          >
-            <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 group-hover:border-purple-500/50 transition">
-              <ArrowLeft className="w-4 h-4 text-cyan-400" />
-            </div>
-            <span>Back to Showcase</span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <ShareButton
-              promptId={prompt.id}
-              title={prompt.title}
-              promptText={prompt.promptText}
-              variant="button"
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content View */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 w-full">
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row">
-          
-          {/* Left Column: Media Renderer */}
-          <div className="w-full lg:w-1/2 bg-black flex items-center justify-center relative min-h-[360px] lg:min-h-[600px] overflow-hidden">
-            {prompt.contentType === 'VIDEO' ? (
-              <video
-                src={prompt.mediaUrl}
-                poster={getOptimizedMediaUrl(prompt.thumbnailUrl || prompt.mediaUrl, { width: 1200 })}
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                className="w-full h-full max-h-[75vh] object-contain"
-              />
-            ) : (
-              <img
-                src={getOptimizedMediaUrl(prompt.mediaUrl, { width: 1200 })}
-                alt={prompt.title}
-                className="w-full h-full max-h-[75vh] object-contain"
-              />
-            )}
-
-            {/* Resolution Link */}
-            <a
-              href={prompt.mediaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute top-4 left-4 z-20 px-3.5 py-1.5 rounded-xl bg-slate-950/90 hover:bg-slate-900 text-xs font-semibold text-cyan-300 border border-slate-700/80 backdrop-blur-md flex items-center gap-1.5 transition shadow-lg active:scale-95"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Full Resolution</span>
-            </a>
-          </div>
-
-          {/* Right Column: Prompt Details & Command Panel */}
-          <div className="w-full lg:w-1/2 p-6 sm:p-10 flex flex-col justify-between space-y-8">
-            <div className="space-y-6">
-              {/* Badges & Meta */}
-              <div>
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-950/80 text-purple-300 border border-purple-800">
-                    {prompt.aiModel}
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 text-cyan-300 border border-cyan-800">
-                    {prompt.contentType}
-                  </span>
-                  {prompt.aspectRatio && (
-                    <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                      {prompt.aspectRatio}
-                    </span>
-                  )}
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-                  {prompt.title}
-                </h1>
-              </div>
-
-              {/* Prompt Box */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4" /> Prompt Command
-                  </span>
-                </div>
-                <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-slate-800 font-mono text-xs sm:text-sm text-slate-200 leading-relaxed select-all shadow-inner">
-                  {prompt.promptText}
-                </div>
-              </div>
-
-              {/* Negative Prompt */}
-              {prompt.negativePrompt && (
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sliders className="w-4 h-4" /> Negative Prompt
-                  </span>
-                  <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 font-mono text-xs text-slate-400 select-all">
-                    {prompt.negativePrompt}
-                  </div>
-                </div>
-              )}
-
-              {/* Metadata Info & Tags */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-950/40 border border-slate-800/60 text-xs">
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Category</span>
-                  <span className="font-semibold text-slate-200">{prompt.category?.name || 'General AI'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Total Copies</span>
-                  <span className="font-semibold text-purple-400 flex items-center gap-1">
-                    <Flame className="w-3.5 h-3.5 text-orange-400" />
-                    {formatCompactNumber(prompt.copyCount)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block mb-0.5">Impressions</span>
-                  <span className="font-semibold text-cyan-400 flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5 text-cyan-400" />
-                    {formatCompactNumber(prompt.viewCount)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Tags */}
-              {prompt.tags && prompt.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {prompt.tags.map((tag) => (
-                    <span
-                      key={tag.slug}
-                      className="px-3 py-1 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700/60 text-xs font-medium"
-                    >
-                      #{tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center gap-3">
-              <ShareButton
-                promptId={prompt.id}
-                title={prompt.title}
-                promptText={prompt.promptText}
-                variant="button"
-                className="w-full sm:w-auto py-3 px-5 justify-center"
-              />
-            </div>
-          </div>
-
-        </div>
-      </main>
-    </div>
+      {/* Interactive Prompt Detail View with Mobile Action Bar & Recommendations */}
+      <PromptDetailView
+        prompt={prompt}
+        recommendedPrompts={recommendedPrompts}
+        siteUrl={siteUrl}
+      />
+    </>
   );
 }
